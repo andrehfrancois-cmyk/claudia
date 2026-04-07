@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feira do Tomazinho</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="topo">
+      <div class="logo">
+        <div class="moeda-logo">🪙</div>
+        <div>
+          <h1>Feira do Tomazinho</h1>
+          <p>Aprender, vender, comprar e brincar!</p>
+        </div>
+      </div>
+
+      <div class="saldo">
+        <span>Seu saldo:</span>
+        <strong id="saldoTomazinho">50 Tomazinhos</strong>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-card">
+        <h2>O mercadinho mais divertido da escola!</h2>
+        <p>
+          Aqui as turmas do Ensino Médio criam produtos incríveis e as turmas do Fundamental
+          usam a moeda fictícia <strong>Tomazinho</strong> para comprar, aprender sobre dinheiro,
+          escolhas e trabalho em equipe.
+        </p>
+
+        <div class="botoes-hero">
+          <a href="#produtos" class="btn btn-amarelo">🌟 Ver produtos</a>
+          <a href="#como-funciona" class="btn btn-branco">💡 Como funciona</a>
+        </div>
+      </div>
+
+      <div class="hero-ilustracao" aria-hidden="true">
+        <div class="cena">
+          <div class="toldo"></div>
+          <div class="banca"></div>
+          <div class="personagem vendedor">🧒</div>
+          <div class="personagem comprador">👧</div>
+          <div class="produto-mini">🧸</div>
+          <div class="moeda-mini">🪙</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="secao-titulo">
+        <h3>Por que essa feira é especial?</h3>
+        <p>Uma experiência divertida de aprendizagem</p>
+      </div>
+
+      <div class="cards-info">
+        <article class="info">
+          <div class="icone">🎨</div>
+          <h4>Criatividade</h4>
+          <p>As turmas criam produtos, embalagens, ideias e formas de apresentar suas invenções.</p>
+        </article>
+
+        <article class="info">
+          <div class="icone">🪙</div>
+          <h4>Dinheiro fictício</h4>
+          <p>As compras usam Tomazinhos, ajudando as crianças a entender valor, troco e planejamento.</p>
+        </article>
+
+        <article class="info">
+          <div class="icone">🤝</div>
+          <h4>Aprender juntos</h4>
+          <p>Ensino Médio e Fundamental participam juntos, fortalecendo cooperação e protagonismo.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="produtos">
+      <div class="secao-titulo">
+        <h3>Produtos da feira</h3>
+        <p>Escolha seus favoritos e use seus Tomazinhos</p>
+      </div>
+
+      <div class="grade-produtos">
+        <article class="produto">
+          <span class="tag-turma">Turma 2ºA</span>
+          <div class="produto-icone">🧸</div>
+          <h4>Bonequinho Feliz</h4>
+          <p>Um brinquedo fofo feito para brincar e decorar.</p>
+          <div class="rodape-card">
+            <span class="preco">8 Tomazinhos</span>
+            <button class="btn-comprar" onclick="adicionarAoCarrinho('Bonequinho Feliz', 8)">Comprar</button>
+          </div>
+        </article>
+
+        <article class="produto">
+          <span class="tag-turma">Turma 3ºB</span>
+          <div class="produto-icone">📚</div>
+          <h4>Mini Livro Colorido</h4>
+          <p>História curtinha com desenhos e capa divertida.</p>
+          <div class="rodape-card">
+            <span class="preco">6 Tomazinhos</span>
+            <button class="btn-comprar" onclick="adicionarAoCarrinho('Mini Livro Colorido', 6)">Comprar</button>
+          </div>
+        </article>
+
+        <article class="produto">
+          <span class="tag-turma">Turma 1ºC</span>
+          <div class="produto-icone">🍪</div>
+          <h4>Cookie da Turma</h4>
+          <p>Delícia fictícia para a feira, ideal para representar vendas criativas.</p>
+          <div class="rodape-card">
+            <span class="preco">5 Tomazinhos</span>
+            <button class="btn-comprar" onclick="adicionarAoCarrinho('Cookie da Turma', 5)">Comprar</button>
+          </div>
+        </article>
+
+        <article class="produto">
+          <span class="tag-turma">Turma 2ºC</span>
+          <div class="produto-icone">🎲</div>
+          <h4>Jogo da Alegria</h4>
+          <p>Um joguinho educativo para aprender brincando com os colegas.</p>
+          <div class="rodape-card">
+            <span class="preco">10 Tomazinhos</span>
+            <button class="btn-comprar" onclick="adicionarAoCarrinho('Jogo da Alegria', 10)">Comprar</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="painel">
+      <article class="quadro" id="como-funciona">
+        <h4>Como funciona?</h4>
+        <div class="passos">
+          <div class="passo">
+            <div class="numero">1</div>
+            <div>
+              <strong>As turmas criam</strong>
+              <p>Os alunos do Ensino Médio desenvolvem os produtos e organizam a feira.</p>
+            </div>
+          </div>
+
+          <div class="passo">
+            <div class="numero">2</div>
+            <div>
+              <strong>Os pequenos recebem Tomazinhos</strong>
+              <p>Cada criança ganha um valor fictício para usar durante a atividade.</p>
+            </div>
+          </div>
+
+          <div class="passo">
+            <div class="numero">3</div>
+            <div>
+              <strong>Hora das compras</strong>
+              <p>Os alunos escolhem o que querem comprar e aprendem a fazer escolhas.</p>
+            </div>
+          </div>
+
+          <div class="passo">
+            <div class="numero">4</div>
+            <div>
+              <strong>Aprender brincando</strong>
+              <p>A experiência trabalha matemática, colaboração, criatividade e autonomia.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="quadro">
+        <h4>Meu carrinho</h4>
+        <div class="lista-carrinho" id="listaCarrinho">
+          <div class="item-carrinho">Nenhum produto escolhido ainda ✨</div>
+        </div>
+
+        <div class="total-box">
+          <span>Total da compra:</span>
+          <strong id="totalCarrinho">0 Tomazinhos</strong>
+        </div>
+
+        <div class="acoes-carrinho">
+          <button class="btn btn-secundario" onclick="limparCarrinho()">🧹 Limpar</button>
+          <button class="btn btn-principal" onclick="finalizarCompra()">🛍️ Finalizar compra</button>
+        </div>
+
+        <div class="mensagem" id="mensagemCompra"></div>
+      </article>
+    </section>
+
+    <footer>
+      <p>Feira do Tomazinho • Projeto escolar de compra e venda com moeda fictícia</p>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

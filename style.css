@@ -1,0 +1,627 @@
+:root {
+  --azul: #4aa8ff;
+  --azul-escuro: #1d6fd1;
+  --amarelo: #ffd84d;
+  --laranja: #ff9d42;
+  --rosa: #ff73b3;
+  --verde: #5fd37a;
+  --verde-escuro: #2f9c4a;
+  --roxo: #8f7cff;
+  --fundo: #f4fbff;
+  --texto: #234;
+  --branco: #fff;
+  --sombra: 0 10px 30px rgba(38, 92, 142, 0.15);
+  --raio: 24px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Nunito", sans-serif;
+  background:
+    radial-gradient(circle at top left, #dff4ff 0%, transparent 25%),
+    radial-gradient(circle at bottom right, #fff2b7 0%, transparent 22%),
+    linear-gradient(180deg, #ecfaff 0%, #fefeff 100%);
+  color: var(--texto);
+  min-height: 100vh;
+}
+
+header {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 20px 48px;
+}
+
+.topo {
+  max-width: 1180px;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.moeda-logo {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffe985, #ffc63b);
+  display: grid;
+  place-items: center;
+  font-size: 1.8rem;
+  box-shadow: var(--sombra);
+  border: 4px solid #fff6cf;
+}
+
+.logo h1 {
+  font-family: "Baloo 2", cursive;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  color: var(--azul-escuro);
+  line-height: 1;
+}
+
+.logo p {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #4f6a7d;
+}
+
+.saldo {
+  background: #ffffffde;
+  backdrop-filter: blur(8px);
+  padding: 12px 18px;
+  border-radius: 18px;
+  box-shadow: var(--sombra);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid #e5f3ff;
+}
+
+.saldo strong {
+  font-size: 1.2rem;
+  color: var(--verde-escuro);
+}
+
+.hero {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #71c2ff, #5d93ff 55%, #8f7cff);
+  color: white;
+  padding: 34px;
+  border-radius: 32px;
+  box-shadow: 0 15px 40px rgba(68, 108, 198, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card::before,
+.hero-card::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.hero-card::before {
+  width: 220px;
+  height: 220px;
+  top: -80px;
+  right: -60px;
+}
+
+.hero-card::after {
+  width: 130px;
+  height: 130px;
+  bottom: -35px;
+  left: -30px;
+}
+
+.hero-card h2 {
+  font-family: "Baloo 2", cursive;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 0.98;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-card p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 640px;
+  position: relative;
+  z-index: 1;
+}
+
+.botoes-hero {
+  margin-top: 22px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.12);
+}
+
+.btn-amarelo {
+  background: linear-gradient(135deg, #ffe878, #ffbf38);
+  color: #764d00;
+}
+
+.btn-branco {
+  background: white;
+  color: var(--azul-escuro);
+}
+
+.hero-ilustracao {
+  background: linear-gradient(180deg, #ffffffd7, #f5fcff);
+  border-radius: 32px;
+  padding: 28px;
+  box-shadow: var(--sombra);
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cena {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 260px;
+}
+
+.banca {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  height: 110px;
+  background: linear-gradient(180deg, #ffb864, #ff9248);
+  border-radius: 18px;
+  box-shadow: 0 8px 0 #d56d23;
+}
+
+.toldo {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 70px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ff6f91 0 40px,
+    #fff 40px 80px
+  );
+  border-radius: 20px 20px 10px 10px;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.1);
+}
+
+.personagem {
+  position: absolute;
+  bottom: 72px;
+  width: 94px;
+  height: 120px;
+  border-radius: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+.vendedor {
+  left: 38px;
+  background: linear-gradient(180deg, #8fdcff, #67b5ff);
+}
+
+.comprador {
+  right: 38px;
+  background: linear-gradient(180deg, #ffe089, #ffc857);
+}
+
+.produto-mini,
+.moeda-mini {
+  position: absolute;
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--sombra);
+  display: grid;
+  place-items: center;
+  font-size: 1.8rem;
+}
+
+.produto-mini {
+  width: 64px;
+  height: 64px;
+  top: 106px;
+  left: 142px;
+}
+
+.moeda-mini {
+  width: 58px;
+  height: 58px;
+  top: 122px;
+  right: 130px;
+  background: linear-gradient(135deg, #fff1a8, #ffcb4d);
+}
+
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 6px 20px 60px;
+}
+
+.secao-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 28px 0 18px;
+  flex-wrap: wrap;
+}
+
+.secao-titulo h3 {
+  font-family: "Baloo 2", cursive;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  color: var(--azul-escuro);
+}
+
+.secao-titulo p {
+  font-weight: 800;
+  color: #597286;
+}
+
+.cards-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.info {
+  background: white;
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: var(--sombra);
+  border: 2px solid #ebf7ff;
+}
+
+.info .icone {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  margin-bottom: 14px;
+}
+
+.info:nth-child(1) .icone {
+  background: #e8f5ff;
+}
+
+.info:nth-child(2) .icone {
+  background: #fff3d9;
+}
+
+.info:nth-child(3) .icone {
+  background: #e8fff0;
+}
+
+.info h4 {
+  font-family: "Baloo 2", cursive;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  color: #274864;
+}
+
+.info p {
+  line-height: 1.6;
+  color: #587084;
+  font-weight: 700;
+}
+
+.grade-produtos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.produto {
+  background: white;
+  border-radius: 26px;
+  padding: 18px;
+  box-shadow: var(--sombra);
+  border: 2px solid #edf7ff;
+  transition: transform 0.25s ease;
+  position: relative;
+}
+
+.produto:hover {
+  transform: translateY(-6px);
+}
+
+.tag-turma {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: var(--azul-escuro);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.produto-icone {
+  height: 110px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  font-size: 3.1rem;
+  margin-bottom: 14px;
+}
+
+.produto:nth-child(1) .produto-icone {
+  background: linear-gradient(135deg, #dff6ff, #b9e7ff);
+}
+
+.produto:nth-child(2) .produto-icone {
+  background: linear-gradient(135deg, #fff0d2, #ffd48b);
+}
+
+.produto:nth-child(3) .produto-icone {
+  background: linear-gradient(135deg, #ffe1ee, #ffb6d5);
+}
+
+.produto:nth-child(4) .produto-icone {
+  background: linear-gradient(135deg, #e4f7e6, #b3e7b9);
+}
+
+.produto h4 {
+  font-family: "Baloo 2", cursive;
+  font-size: 1.4rem;
+  color: #244861;
+  margin-bottom: 6px;
+  padding-right: 86px;
+}
+
+.produto p {
+  color: #688293;
+  font-weight: 700;
+  min-height: 52px;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.rodape-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.preco {
+  background: linear-gradient(135deg, #fff1aa, #ffc93d);
+  color: #7b5100;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 900;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.07);
+}
+
+.btn-comprar {
+  background: linear-gradient(135deg, #69da86, #39b95b);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 999px;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+  font-size: 0.96rem;
+}
+
+.painel {
+  margin-top: 34px;
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 20px;
+}
+
+.quadro {
+  background: white;
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: var(--sombra);
+  border: 2px solid #edf7ff;
+}
+
+.quadro h4 {
+  font-family: "Baloo 2", cursive;
+  font-size: 1.7rem;
+  color: var(--azul-escuro);
+  margin-bottom: 12px;
+}
+
+.passos {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.passo {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #f7fcff;
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.numero {
+  min-width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #79c5ff, #4e95ff);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.lista-carrinho {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.item-carrinho {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  background: #f7fcff;
+  padding: 14px;
+  border-radius: 18px;
+  font-weight: 800;
+  color: #34556e;
+}
+
+.total-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #eef9ff, #f6fff2);
+  border: 2px dashed #b7e2c4;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 14px;
+  font-weight: 900;
+  color: #245b37;
+}
+
+.acoes-carrinho {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-secundario {
+  background: #eef6ff;
+  color: var(--azul-escuro);
+}
+
+.btn-principal {
+  background: linear-gradient(135deg, #ff8bbd, #ff5d9d);
+  color: white;
+}
+
+footer {
+  margin-top: 34px;
+  text-align: center;
+  color: #698194;
+  font-weight: 800;
+  padding: 10px 0 0;
+}
+
+.mensagem {
+  margin-top: 12px;
+  background: #eefdf3;
+  color: #2b7a40;
+  border: 2px solid #c8f0d2;
+  border-radius: 18px;
+  padding: 12px 14px;
+  font-weight: 800;
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .hero,
+  .painel,
+  .cards-info,
+  .grade-produtos {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .cards-info,
+  .grade-produtos,
+  .painel {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-card,
+  .hero-ilustracao,
+  .quadro,
+  .produto,
+  .info {
+    border-radius: 24px;
+  }
+
+  .hero-card {
+    padding: 26px;
+  }
+
+  .topo {
+    align-items: flex-start;
+  }
+
+  .cena {
+    transform: scale(0.94);
+  }
+
+  .produto h4 {
+    padding-right: 0;
+  }
+}
