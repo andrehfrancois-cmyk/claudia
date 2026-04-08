@@ -67,3 +67,27 @@ function finalizarCompra() {
 }
 
 atualizarTela();
+
+async function carregarProdutos() {
+  const res = await fetch("/api/produtos");
+  const produtos = await res.json();
+
+  const grade = document.querySelector(".grade-produtos");
+
+  grade.innerHTML = produtos.map(p => `
+    <article class="produto">
+      <span class="tag-turma">Turma ${p.turma}</span>
+      <div class="produto-icone">${p.icone}</div>
+      <h4>${p.nome}</h4>
+      <p>Produto criado pelos alunos.</p>
+      <div class="rodape-card">
+        <span class="preco">${p.preco} Tomazinhos</span>
+        <button class="btn-comprar" onclick="adicionarAoCarrinho('${p.nome}', ${p.preco})">
+          Comprar
+        </button>
+      </div>
+    </article>
+  `).join("");
+}
+
+carregarProdutos();
