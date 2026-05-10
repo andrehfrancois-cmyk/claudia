@@ -2,23 +2,73 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Painel do Professor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel - Feira do Tomazinho</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
 </head>
-<body>
+<body class="admin-page">
+  <div class="admin-shell">
+    <header class="admin-header">
+      <div>
+        <h1>Painel do Tomazinho 🪙</h1>
+        <p id="statusPainel">Entre com Google para acessar o painel.</p>
+      </div>
+      <div class="row-actions">
+        <a class="btn btn-branco" href="../index.html">🏠 Loja</a>
+        <button class="btn btn-amarelo" id="btnLogin" onclick="loginGoogle()">Entrar com Google</button>
+        <button class="btn btn-branco" id="btnLogout" onclick="logout()" style="display:none">Sair</button>
+      </div>
+    </header>
 
-<h2>Cadastro de Produtos 🛍️</h2>
+    <main class="admin-grid" id="conteudoPainel" style="display:none">
+      <section class="admin-card">
+        <h2>Cadastrar produto</h2>
+        <div class="form-grid">
+          <input id="nome" placeholder="Nome do produto">
+          <input id="preco" type="number" min="1" placeholder="Preço em Tomazinhos">
+          <input id="estoque" type="number" min="0" placeholder="Estoque">
+          <input id="turma" placeholder="Turma ou sala">
+          <input id="icone" placeholder="Emoji: 🧸 📚 🍪 🎲">
+          <select id="grupoProduto"></select>
+          <textarea id="descricao" placeholder="Descrição do produto"></textarea>
+          <button class="btn btn-principal span-2" onclick="cadastrarProduto()">Cadastrar produto</button>
+        </div>
+        <div class="mensagem" id="msgProduto"></div>
+      </section>
 
-<input id="nome" placeholder="Nome do produto">
-<input id="preco" type="number" placeholder="Preço (Tomazinho)">
-<input id="turma" placeholder="Turma">
-<input id="icone" placeholder="Emoji (🧸📚🍪)">
+      <section class="admin-card" id="cardGrupos">
+        <h2>Grupos vendedores</h2>
+        <div class="form-grid">
+          <input id="nomeGrupo" placeholder="Nome do grupo">
+          <input id="descricaoGrupo" placeholder="Descrição curta">
+          <button class="btn btn-secundario span-2" onclick="criarGrupo()">Criar grupo</button>
+        </div>
+        <div id="listaGrupos" class="admin-list"></div>
+      </section>
 
-<button onclick="cadastrar()">Cadastrar</button>
+      <section class="admin-card full">
+        <h2>Produtos cadastrados</h2>
+        <div id="listaProdutos" class="admin-list"></div>
+      </section>
 
-<h3>Produtos cadastrados</h3>
-<div id="lista"></div>
+      <section class="admin-card full" id="cardUsuarios">
+        <h2>Usuários e saldos</h2>
+        <p>Depois que a pessoa entrar com Google pela primeira vez, ela aparece aqui como pendente.</p>
+        <div id="listaUsuarios" class="admin-list"></div>
+      </section>
 
-<script src="admin.js"></script>
+      <section class="admin-card full">
+        <h2>Vendas recentes</h2>
+        <div id="listaVendas" class="admin-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../lib/supabase-client.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
