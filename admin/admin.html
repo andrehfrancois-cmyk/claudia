@@ -26,11 +26,12 @@
     <main class="admin-grid" id="conteudoPainel" style="display:none">
       <section class="admin-card">
         <h2>Cadastrar produto</h2>
+        <p>Os 4 grupos vendedores devem cadastrar aqui os produtos de suas respectivas turmas/grupos.</p>
         <div class="form-grid">
           <input id="nome" placeholder="Nome do produto">
           <input id="preco" type="number" min="1" placeholder="Preço em Tomazinhos">
           <input id="estoque" type="number" min="0" placeholder="Estoque">
-          <input id="turma" placeholder="Turma ou sala">
+          <input id="turma" placeholder="Turma ou sala responsável">
           <input id="icone" placeholder="Emoji: 🧸 📚 🍪 🎲">
           <select id="grupoProduto"></select>
           <textarea id="descricao" placeholder="Descrição do produto"></textarea>
@@ -41,6 +42,7 @@
 
       <section class="admin-card" id="cardGrupos">
         <h2>Grupos vendedores</h2>
+        <p>Use para identificar os 4 grupos do Ensino Médio que cadastram produtos.</p>
         <div class="form-grid">
           <input id="nomeGrupo" placeholder="Nome do grupo">
           <input id="descricaoGrupo" placeholder="Descrição curta">
@@ -49,15 +51,52 @@
         <div id="listaGrupos" class="admin-list"></div>
       </section>
 
+      <section class="admin-card full" id="cardUsuarios">
+        <h2>Usuários, permissões e saldos</h2>
+        <p>Depois que a pessoa entrar com Google pela primeira vez, ela aparece aqui como pendente. Defina os 4 grupos como <strong>vendedor</strong> e os demais alunos como <strong>comprador</strong>.</p>
+
+        <div class="admin-toolbar">
+          <input id="buscaUsuario" placeholder="Buscar por nome ou e-mail" oninput="renderizarUsuarios()">
+          <select id="filtroTipo" onchange="renderizarUsuarios()">
+            <option value="">Todos os tipos</option>
+            <option value="pendente">Pendentes</option>
+            <option value="student">Compradores</option>
+            <option value="seller">Vendedores</option>
+            <option value="admin">Admins</option>
+          </select>
+          <input id="filtroTurma" placeholder="Filtrar turma/grupo" oninput="renderizarUsuarios()">
+          <button class="mini-btn" onclick="selecionarFiltrados(true)">Selecionar filtrados</button>
+          <button class="mini-btn mini-btn-sair" onclick="selecionarFiltrados(false)">Limpar seleção</button>
+        </div>
+
+        <div class="bulk-panel">
+          <strong id="selecionadosInfo">0 selecionados</strong>
+          <select id="bulkTipo">
+            <option value="">Manter tipo</option>
+            <option value="student">Definir como comprador</option>
+            <option value="seller">Definir como vendedor</option>
+            <option value="admin">Definir como admin</option>
+            <option value="pendente">Voltar para pendente</option>
+          </select>
+          <input id="bulkTurma" placeholder="Turma/grupo em massa">
+          <select id="bulkGrupo"></select>
+          <select id="bulkSaldoModo">
+            <option value="">Manter saldo</option>
+            <option value="set">Definir saldo</option>
+            <option value="add">Somar pontos</option>
+            <option value="subtract">Remover pontos</option>
+          </select>
+          <input id="bulkSaldoValor" type="number" min="0" placeholder="Valor">
+          <button class="btn btn-principal" onclick="aplicarAcaoMassa()">Aplicar nos selecionados</button>
+        </div>
+
+        <div class="mensagem" id="msgUsuarios"></div>
+        <div id="listaUsuarios" class="admin-list usuarios-list"></div>
+      </section>
+
       <section class="admin-card full">
         <h2>Produtos cadastrados</h2>
         <div id="listaProdutos" class="admin-list"></div>
-      </section>
-
-      <section class="admin-card full" id="cardUsuarios">
-        <h2>Usuários e saldos</h2>
-        <p>Depois que a pessoa entrar com Google pela primeira vez, ela aparece aqui como pendente.</p>
-        <div id="listaUsuarios" class="admin-list"></div>
       </section>
 
       <section class="admin-card full">

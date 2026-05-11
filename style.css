@@ -807,3 +807,90 @@ footer {
     flex-wrap: wrap;
   }
 }
+
+/* Melhorias do painel admin: usuários, saldos e ações em massa */
+.admin-card p {
+  color: #587084;
+  font-weight: 800;
+  margin-bottom: 12px;
+  line-height: 1.45;
+}
+
+.admin-toolbar,
+.bulk-panel {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+  align-items: center;
+  background: #f1f9ff;
+  border: 2px solid #d9eefc;
+  border-radius: 18px;
+  padding: 12px;
+}
+
+.bulk-panel {
+  grid-template-columns: 1.1fr repeat(5, minmax(0, 1fr)) 1.4fr;
+  background: #fff9de;
+  border-color: #ffe59c;
+}
+
+.admin-toolbar input,
+.admin-toolbar select,
+.bulk-panel input,
+.bulk-panel select,
+.usuario-form input,
+.usuario-form select {
+  border: 2px solid #d9eefc;
+  border-radius: 14px;
+  padding: 10px;
+  font-family: inherit;
+  font-weight: 800;
+  width: 100%;
+  background: white;
+}
+
+.bulk-panel strong {
+  color: var(--azul-escuro);
+  font-weight: 900;
+}
+
+.usuarios-list {
+  max-height: 620px;
+}
+
+.usuario-item {
+  border-left: 8px solid #d9eefc;
+}
+
+.usuario-item.selecionado {
+  border-left-color: var(--verde);
+  background: #f2fff6;
+}
+
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.check-line input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--verde-escuro);
+}
+
+.usuario-form {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 0.8fr 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 950px) {
+  .admin-toolbar,
+  .bulk-panel,
+  .usuario-form {
+    grid-template-columns: 1fr;
+  }
+}

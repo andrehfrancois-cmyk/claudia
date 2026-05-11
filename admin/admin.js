@@ -1,14 +1,25 @@
 let perfil = null;
 let grupos = [];
+let usuariosCache = [];
+let usuariosFiltrados = [];
+let selecionados = new Set();
 
-function dinheiro(v) { return `${v} Tomazinho${Number(v) === 1 ? '' : 's'}`; }
-function esc(txt) { return String(txt ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const TIPOS_LABEL = {
+  pendente: 'Pendente',
+  student: 'Comprador',
+  seller: 'Vendedor',
+  admin: 'Admin'
+};
+
+function dinheiro(v) { return `${Number(v || 0)} Tomazinho${Number(v || 0) === 1 ? '' : 's'}`; }
+function esc(txt) { return String(txt ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 async function loginGoogle() { await window.TomazinhoAuth.loginGoogle(); }
 async function logout() { await window.TomazinhoAuth.logout(); }
 
 function mensagem(id, texto, ok = true) {
   const el = document.getElementById(id);
+  if (!el) return;
   el.style.display = 'block';
   el.textContent = texto;
   el.style.background = ok ? '#eefdf3' : '#fff0ef';
@@ -71,6 +82,12 @@ async function carregarGrupos() {
     sel.value = perfil.grupo_id || '';
     sel.disabled = true;
   }
+
+  const bulkGrupo = document.getElementById('bulkGrupo');
+  if (bulkGrupo) {
+    bulkGrupo.innerHTML = ['<option value="__manter__">Manter grupo</option>', '<option value="">Sem grupo</option>', ...grupos.map(g => `<option value="${g.id}">${esc(g.nome)}</option>`)].join('');
+  }
+
   const lista = document.getElementById('listaGrupos');
   lista.innerHTML = grupos.map(g => `<div class="admin-item"><strong>${esc(g.nome)}</strong><span>${esc(g.descricao || '')}</span></div>`).join('');
 }
@@ -136,48 +153,149 @@ async function atualizarProduto(id, dados) {
 }
 
 async function carregarUsuarios() {
-  const usuarios = await window.TomazinhoAuth.apiFetch('/api/usuarios');
+  usuariosCache = await window.TomazinhoAuth.apiFetch('/api/usuarios');
+  renderizarUsuarios();
+}
+
+function aplicarFiltrosUsuarios() {
+  const busca = (document.getElementById('buscaUsuario')?.value || '').trim().toLowerCase();
+  const tipo = document.getElementById('filtroTipo')?.value || '';
+  const turma = (document.getElementById('filtroTurma')?.value || '').trim().toLowerCase();
+
+  usuariosFiltrados = usuariosCache.filter(u => {
+    const texto = `${u.nome || ''} ${u.email || ''}`.toLowerCase();
+    const turmaTexto = `${u.turma || ''} ${u.grupos?.nome || ''}`.toLowerCase();
+    return (!busca || texto.includes(busca)) && (!tipo || u.tipo === tipo) && (!turma || turmaTexto.includes(turma));
+  });
+}
+
+function renderizarUsuarios() {
   const lista = document.getElementById('listaUsuarios');
-  if (!usuarios.length) {
+  if (!lista) return;
+  aplicarFiltrosUsuarios();
+  atualizarSelecionadosInfo();
+
+  if (!usuariosCache.length) {
     lista.innerHTML = '<div class="admin-item">Nenhum usuário entrou ainda.</div>';
     return;
   }
+  if (!usuariosFiltrados.length) {
+    lista.innerHTML = '<div class="admin-item">Nenhum usuário encontrado com esses filtros.</div>';
+    return;
+  }
+
   const opcoesGrupos = ['<option value="">Sem grupo</option>', ...grupos.map(g => `<option value="${g.id}">${esc(g.nome)}</option>`)].join('');
-  lista.innerHTML = usuarios.map(u => `
-    <div class="admin-item">
-      <strong>${esc(u.nome || 'Sem nome')}</strong>
+
+  lista.innerHTML = usuariosFiltrados.map(u => `
+    <div class="admin-item usuario-item ${selecionados.has(u.id) ? 'selecionado' : ''}">
+      <label class="check-line">
+        <input type="checkbox" ${selecionados.has(u.id) ? 'checked' : ''} onchange="alternarSelecionado('${u.id}', this.checked)">
+        <strong>${esc(u.nome || 'Sem nome')}</strong>
+      </label>
       <span>${esc(u.email || '')}</span>
-      <span class="badge">${esc(u.tipo)} • Saldo: ${dinheiro(u.saldo || 0)} • Turma: ${esc(u.turma || '-')}</span>
-      <div class="row-actions">
+      <span class="badge">${esc(TIPOS_LABEL[u.tipo] || u.tipo)} • Saldo: ${dinheiro(u.saldo || 0)} • Turma/Grupo: ${esc(u.turma || '-')}</span>
+      <div class="usuario-form">
+        <input id="nome-user-${u.id}" value="${esc(u.nome || '')}" placeholder="Nome">
         <select id="tipo-${u.id}">
-          ${['pendente','student','seller','admin'].map(t => `<option value="${t}" ${u.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}
+          ${['pendente','student','seller','admin'].map(t => `<option value="${t}" ${u.tipo === t ? 'selected' : ''}>${TIPOS_LABEL[t]}</option>`).join('')}
         </select>
-        <input id="saldo-${u.id}" type="number" value="${u.saldo || 0}" min="0">
-        <input id="turma-${u.id}" value="${esc(u.turma || '')}" placeholder="Turma">
+        <input id="saldo-${u.id}" type="number" value="${u.saldo || 0}" min="0" title="Saldo">
+        <input id="turma-${u.id}" value="${esc(u.turma || '')}" placeholder="Turma ou grupo">
         <select id="grupo-${u.id}">${opcoesGrupos}</select>
-        <button class="mini-btn" onclick="salvarUsuario('${u.id}')">Salvar</button>
+      </div>
+      <div class="row-actions">
+        <button class="mini-btn" onclick="salvarUsuario('${u.id}')">Salvar alterações</button>
+        <button class="mini-btn" onclick="somarSaldo('${u.id}', 10)">+10</button>
+        <button class="mini-btn" onclick="somarSaldo('${u.id}', 50)">+50</button>
+        <button class="mini-btn mini-btn-sair" onclick="somarSaldo('${u.id}', -10)">-10</button>
       </div>
     </div>
   `).join('');
 
-  usuarios.forEach(u => {
+  usuariosFiltrados.forEach(u => {
     const sel = document.getElementById(`grupo-${u.id}`);
     if (sel) sel.value = u.grupo_id || '';
   });
+}
+
+function alternarSelecionado(id, marcado) {
+  if (marcado) selecionados.add(id);
+  else selecionados.delete(id);
+  atualizarSelecionadosInfo();
+}
+
+function atualizarSelecionadosInfo() {
+  const el = document.getElementById('selecionadosInfo');
+  if (el) el.textContent = `${selecionados.size} selecionado${selecionados.size === 1 ? '' : 's'}`;
+}
+
+function selecionarFiltrados(marcar) {
+  aplicarFiltrosUsuarios();
+  usuariosFiltrados.forEach(u => marcar ? selecionados.add(u.id) : selecionados.delete(u.id));
+  renderizarUsuarios();
 }
 
 async function salvarUsuario(id) {
   try {
     const payload = {
       id,
+      nome: document.getElementById(`nome-user-${id}`).value,
       tipo: document.getElementById(`tipo-${id}`).value,
       saldo: Number(document.getElementById(`saldo-${id}`).value),
       turma: document.getElementById(`turma-${id}`).value,
       grupo_id: document.getElementById(`grupo-${id}`).value || null
     };
     await window.TomazinhoAuth.apiFetch('/api/usuarios', { method: 'PATCH', body: JSON.stringify(payload) });
+    mensagem('msgUsuarios', 'Usuário atualizado com sucesso!');
     await carregarUsuarios();
-  } catch (e) { alert(e.message); }
+  } catch (e) { mensagem('msgUsuarios', e.message, false); }
+}
+
+async function somarSaldo(id, valor) {
+  try {
+    await window.TomazinhoAuth.apiFetch('/api/usuarios', {
+      method: 'PATCH',
+      body: JSON.stringify({ id, saldo_modo: valor >= 0 ? 'add' : 'subtract', saldo_valor: Math.abs(valor) })
+    });
+    mensagem('msgUsuarios', `${valor >= 0 ? 'Pontos adicionados' : 'Pontos removidos'} com sucesso!`);
+    await carregarUsuarios();
+  } catch (e) { mensagem('msgUsuarios', e.message, false); }
+}
+
+async function aplicarAcaoMassa() {
+  try {
+    const ids = Array.from(selecionados);
+    if (!ids.length) {
+      mensagem('msgUsuarios', 'Selecione pelo menos um usuário.', false);
+      return;
+    }
+
+    const tipo = document.getElementById('bulkTipo').value;
+    const turma = document.getElementById('bulkTurma').value;
+    const grupo_id = document.getElementById('bulkGrupo').value;
+    const saldo_modo = document.getElementById('bulkSaldoModo').value;
+    const saldo_valor = document.getElementById('bulkSaldoValor').value;
+
+    const payload = { ids };
+    if (tipo) payload.tipo = tipo;
+    if (turma.trim()) payload.turma = turma.trim();
+    if (grupo_id !== '__manter__') payload.grupo_id = grupo_id || null;
+    if (saldo_modo) {
+      payload.saldo_modo = saldo_modo;
+      payload.saldo_valor = Number(saldo_valor || 0);
+      if (payload.saldo_valor < 0 || Number.isNaN(payload.saldo_valor)) throw new Error('Informe um valor de saldo válido.');
+    }
+
+    if (!tipo && !turma.trim() && grupo_id === '__manter__' && !saldo_modo) {
+      mensagem('msgUsuarios', 'Escolha alguma ação em massa para aplicar.', false);
+      return;
+    }
+
+    await window.TomazinhoAuth.apiFetch('/api/usuarios', { method: 'PATCH', body: JSON.stringify(payload) });
+    mensagem('msgUsuarios', 'Ação em massa aplicada com sucesso!');
+    document.getElementById('bulkSaldoValor').value = '';
+    await carregarUsuarios();
+  } catch (e) { mensagem('msgUsuarios', e.message, false); }
 }
 
 async function carregarVendas() {
