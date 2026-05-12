@@ -28,6 +28,7 @@ create table if not exists public.produtos (
   preco integer not null check (preco > 0),
   estoque integer not null default 0 check (estoque >= 0),
   icone text default '🛍️',
+  imagem_url text default '',
   turma text default '',
   grupo_id uuid references public.grupos(id) on delete set null,
   criado_por uuid references auth.users(id) on delete set null,
@@ -61,6 +62,8 @@ where not exists (select 1 from public.grupos where nome = 'Grupo 3');
 insert into public.grupos (nome, descricao)
 select 'Grupo 4', 'Quarto grupo vendedor'
 where not exists (select 1 from public.grupos where nome = 'Grupo 4');
+
+
 
 create or replace function public.criar_usuario_apos_login()
 returns trigger
@@ -116,6 +119,53 @@ set search_path = public
 as $$
   select exists(select 1 from public.usuarios where id = auth.uid() and tipo = 'admin');
 $$;
+
+
+-- Atualização para projetos que já estavam criados antes da função de imagem.
+alter table public.produtos
+add column if not exists imagem_url text default '';
+
+-- Bucket público para imagens dos produtos.
+-- Execute este trecho no SQL Editor do Supabase. Se preferir, também pode criar manualmente:
+-- Storage → New bucket → nome: produtos → Public bucket.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'produtos',
+  'produtos',
+  true,
+  2097152,
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+-- Políticas do Storage para as imagens dos produtos.
+drop policy if exists produtos_storage_select on storage.objects;
+create policy produtos_storage_select on storage.objects
+for select using (bucket_id = 'produtos');
+
+drop policy if exists produtos_storage_insert_seller_admin on storage.objects;
+create policy produtos_storage_insert_seller_admin on storage.objects
+for insert to authenticated
+with check (
+  bucket_id = 'produtos'
+  and (public.sou_admin() or public.meu_tipo() = 'seller')
+);
+
+drop policy if exists produtos_storage_update_seller_admin on storage.objects;
+create policy produtos_storage_update_seller_admin on storage.objects
+for update to authenticated
+using (
+  bucket_id = 'produtos'
+  and (public.sou_admin() or public.meu_tipo() = 'seller')
+)
+with check (
+  bucket_id = 'produtos'
+  and (public.sou_admin() or public.meu_tipo() = 'seller')
+);
+
 
 create or replace function public.comprar_produto(p_produto_id uuid, p_quantidade integer)
 returns uuid

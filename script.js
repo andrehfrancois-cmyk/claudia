@@ -3,6 +3,7 @@ let produtosDisponiveis = [];
 let carrinho = [];
 
 const dinheiro = (valor) => `${valor} Tomazinho${Number(valor) === 1 ? '' : 's'}`;
+const esc = (txt) => String(txt ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function atualizarTela() {
   const lista = document.getElementById('listaCarrinho');
@@ -29,6 +30,14 @@ function mostrarMensagem(texto, sucesso = true) {
   mensagem.style.background = sucesso ? '#eefdf3' : '#fff0ef';
   mensagem.style.color = sucesso ? '#2b7a40' : '#b24040';
   mensagem.style.borderColor = sucesso ? '#c8f0d2' : '#ffc8c4';
+}
+
+
+function renderImagemLoja(p) {
+  if (p.imagem_url) {
+    return `<img class="produto-img" src="${esc(p.imagem_url)}" alt="Imagem do produto ${esc(p.nome)}" loading="lazy">`;
+  }
+  return `<div class="produto-icone">${esc(p.icone || '🛍️')}</div>`;
 }
 
 async function loginGoogle() {
@@ -96,7 +105,7 @@ async function carregarProdutos() {
     grade.innerHTML = produtosDisponiveis.map(p => `
       <article class="produto">
         <span class="tag-turma">${p.grupos?.nome || p.turma || 'Grupo vendedor'}</span>
-        <div class="produto-icone">${p.icone || '🛍️'}</div>
+        ${renderImagemLoja(p)}
         <h4>${p.nome}</h4>
         <p>${p.descricao || 'Produto criado pelos alunos.'}</p>
         <small class="estoque">Estoque: ${p.estoque}</small>
@@ -130,7 +139,7 @@ function adicionarAoCarrinho(id) {
     return;
   }
   if (item) item.quantidade += 1;
-  else carrinho.push({ id: produto.id, nome: produto.nome, preco: produto.preco, icone: produto.icone, quantidade: 1 });
+  else carrinho.push({ id: produto.id, nome: produto.nome, preco: produto.preco, icone: produto.icone, imagem_url: produto.imagem_url, quantidade: 1 });
   atualizarTela();
   mostrarMensagem(`${produto.nome} foi adicionado ao carrinho!`);
 }

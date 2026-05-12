@@ -32,7 +32,12 @@
           <input id="preco" type="number" min="1" placeholder="Preço em Tomazinhos">
           <input id="estoque" type="number" min="0" placeholder="Estoque">
           <input id="turma" placeholder="Turma ou sala responsável">
-          <input id="icone" placeholder="Emoji: 🧸 📚 🍪 🎲">
+          <div class="file-field span-2">
+            <label for="imagemProduto">Imagem do produto</label>
+            <input id="imagemProduto" type="file" accept="image/png,image/jpeg,image/webp" onchange="previewImagemProduto()">
+            <small>Use JPG, PNG ou WEBP. O sistema padroniza o tamanho no card. Recomendado: até 2 MB.</small>
+            <img id="previewProduto" class="preview-produto" alt="Prévia da imagem" style="display:none">
+          </div>
           <select id="grupoProduto"></select>
           <textarea id="descricao" placeholder="Descrição do produto"></textarea>
           <button class="btn btn-principal span-2" onclick="cadastrarProduto()">Cadastrar produto</button>

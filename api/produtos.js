@@ -8,7 +8,7 @@ export default async function handler(req, res) {
       const somenteAtivos = req.query?.todos !== '1';
       let query = admin
         .from('produtos')
-        .select('id,nome,descricao,preco,estoque,icone,turma,ativo,grupo_id,grupos(nome)')
+        .select('id,nome,descricao,preco,estoque,icone,imagem_url,turma,ativo,grupo_id,grupos(nome)')
         .order('created_at', { ascending: false });
       if (somenteAtivos) query = query.eq('ativo', true).gt('estoque', 0);
       const { data, error } = await query;
@@ -36,6 +36,7 @@ export default async function handler(req, res) {
         preco,
         estoque,
         icone: body.icone || '🛍️',
+        imagem_url: body.imagem_url || '',
         turma: body.turma || '',
         grupo_id,
         criado_por: user.id,
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
       if (!id) return json(res, 400, { error: 'Produto sem ID.' });
 
       const updates = {};
-      ['nome', 'descricao', 'icone', 'turma', 'ativo'].forEach(k => { if (body[k] !== undefined) updates[k] = body[k]; });
+      ['nome', 'descricao', 'icone', 'imagem_url', 'turma', 'ativo'].forEach(k => { if (body[k] !== undefined) updates[k] = body[k]; });
       ['preco', 'estoque'].forEach(k => { if (body[k] !== undefined) updates[k] = Number(body[k]); });
 
       let query = admin.from('produtos').update(updates).eq('id', id);

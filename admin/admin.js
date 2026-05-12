@@ -27,6 +27,58 @@ function mensagem(id, texto, ok = true) {
   el.style.borderColor = ok ? '#c8f0d2' : '#ffc8c4';
 }
 
+
+function previewImagemProduto() {
+  const input = document.getElementById('imagemProduto');
+  const preview = document.getElementById('previewProduto');
+  const arquivo = input?.files?.[0];
+  if (!arquivo || !preview) {
+    if (preview) preview.style.display = 'none';
+    return;
+  }
+  preview.src = URL.createObjectURL(arquivo);
+  preview.style.display = 'block';
+}
+
+async function uploadImagemProduto() {
+  const input = document.getElementById('imagemProduto');
+  const arquivo = input?.files?.[0];
+  if (!arquivo) return '';
+
+  const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!tiposPermitidos.includes(arquivo.type)) {
+    throw new Error('Use imagem JPG, PNG ou WEBP.');
+  }
+  if (arquivo.size > 2 * 1024 * 1024) {
+    throw new Error('A imagem deve ter no máximo 2 MB.');
+  }
+
+  const sb = await window.TomazinhoAuth.initSupabase();
+  const extensao = arquivo.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const nomeSeguro = (arquivo.name || 'produto').toLowerCase().replace(/[^a-z0-9.-]+/g, '-').slice(0, 50);
+  const pasta = perfil?.grupo_id || perfil?.id || 'geral';
+  const caminho = `${pasta}/${Date.now()}-${crypto.randomUUID()}-${nomeSeguro}.${extensao}`;
+
+  const { error } = await sb.storage
+    .from('produtos')
+    .upload(caminho, arquivo, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: arquivo.type
+    });
+  if (error) throw error;
+
+  const { data } = sb.storage.from('produtos').getPublicUrl(caminho);
+  return data.publicUrl;
+}
+
+function renderImagemProduto(p) {
+  if (p.imagem_url) {
+    return `<img class="produto-admin-thumb" src="${esc(p.imagem_url)}" alt="Imagem do produto ${esc(p.nome)}" loading="lazy">`;
+  }
+  return `<div class="produto-admin-thumb produto-admin-thumb-fallback">${esc(p.icone || '🛍️')}</div>`;
+}
+
 async function iniciarPainel() {
   try {
     await window.TomazinhoAuth.initSupabase();
@@ -105,18 +157,27 @@ async function criarGrupo() {
 
 async function cadastrarProduto() {
   try {
+    mensagem('msgProduto', 'Enviando imagem e cadastrando produto...');
+    const imagem_url = await uploadImagemProduto();
     const produto = {
       nome: document.getElementById('nome').value,
       preco: Number(document.getElementById('preco').value),
       estoque: Number(document.getElementById('estoque').value),
       turma: document.getElementById('turma').value,
-      icone: document.getElementById('icone').value || '🛍️',
+      imagem_url,
       descricao: document.getElementById('descricao').value,
       grupo_id: document.getElementById('grupoProduto').value
     };
     await window.TomazinhoAuth.apiFetch('/api/produtos', { method: 'POST', body: JSON.stringify(produto) });
-    ['nome','preco','estoque','turma','icone','descricao'].forEach(id => document.getElementById(id).value = '');
-    mensagem('msgProduto', 'Produto cadastrado com sucesso!');
+    ['nome','preco','estoque','turma','descricao'].forEach(id => document.getElementById(id).value = '');
+    const imagemInput = document.getElementById('imagemProduto');
+    const preview = document.getElementById('previewProduto');
+    if (imagemInput) imagemInput.value = '';
+    if (preview) {
+      preview.removeAttribute('src');
+      preview.style.display = 'none';
+    }
+    mensagem('msgProduto', 'Produto cadastrado com imagem!');
     await carregarProdutos();
   } catch (e) {
     mensagem('msgProduto', e.message, false);
@@ -131,15 +192,18 @@ async function carregarProdutos() {
     return;
   }
   lista.innerHTML = produtos.map(p => `
-    <div class="admin-item">
-      <strong>${esc(p.icone || '🛍️')} ${esc(p.nome)}</strong>
-      <span>${esc(p.descricao || '')}</span>
-      <span class="badge">${dinheiro(p.preco)} • Estoque: ${p.estoque} • ${p.ativo ? 'Ativo' : 'Inativo'}</span>
-      <small>Grupo: ${esc(p.grupos?.nome || 'sem grupo')} | Turma: ${esc(p.turma || '-')}</small>
-      <div class="row-actions">
-        <input id="estoque-${p.id}" type="number" value="${p.estoque}" min="0" title="Estoque">
-        <button class="mini-btn" onclick="atualizarProduto('${p.id}', { estoque: Number(document.getElementById('estoque-${p.id}').value) })">Atualizar estoque</button>
-        <button class="mini-btn mini-btn-sair" onclick="atualizarProduto('${p.id}', { ativo: ${!p.ativo} })">${p.ativo ? 'Desativar' : 'Ativar'}</button>
+    <div class="admin-item produto-admin-item">
+      ${renderImagemProduto(p)}
+      <div class="produto-admin-info">
+        <strong>${esc(p.nome)}</strong>
+        <span>${esc(p.descricao || '')}</span>
+        <span class="badge">${dinheiro(p.preco)} • Estoque: ${p.estoque} • ${p.ativo ? 'Ativo' : 'Inativo'}</span>
+        <small>Grupo: ${esc(p.grupos?.nome || 'sem grupo')} | Turma: ${esc(p.turma || '-')}</small>
+        <div class="row-actions">
+          <input id="estoque-${p.id}" type="number" value="${p.estoque}" min="0" title="Estoque">
+          <button class="mini-btn" onclick="atualizarProduto('${p.id}', { estoque: Number(document.getElementById('estoque-${p.id}').value) })">Atualizar estoque</button>
+          <button class="mini-btn mini-btn-sair" onclick="atualizarProduto('${p.id}', { ativo: ${!p.ativo} })">${p.ativo ? 'Desativar' : 'Ativar'}</button>
+        </div>
       </div>
     </div>
   `).join('');

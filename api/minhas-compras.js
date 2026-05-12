@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     const supabase = userClient(req);
     const { data, error } = await supabase
       .from('compras')
-      .select('id,quantidade,total,status,created_at,produtos(nome,icone)')
+      .select('id,quantidade,total,status,created_at,produtos(nome,icone,imagem_url)')
       .order('created_at', { ascending: false })
       .limit(30);
     if (error) throw error;

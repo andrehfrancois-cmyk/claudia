@@ -89,3 +89,17 @@ where email = 'SEU_EMAIL@gmail.com';
 ## Observação
 
 O arquivo original usava `/api/produtos.js` com produtos em memória. Essa versão substitui isso por Supabase, porque no Vercel a memória pode resetar entre execuções.
+
+
+## Imagens dos produtos
+
+Esta versão troca o campo de emoji por upload de imagem no painel de produtos.
+As imagens são salvas no Supabase Storage, no bucket público chamado `produtos`, e a tabela `produtos` guarda apenas o link no campo `imagem_url`.
+
+Antes de testar o cadastro com imagem, execute novamente o arquivo `sql/schema.sql` no SQL Editor do Supabase. Ele cria/atualiza:
+
+- coluna `imagem_url` na tabela `produtos`;
+- bucket `produtos` no Supabase Storage;
+- políticas para permitir upload por usuários `seller` e `admin`.
+
+Limite configurado: imagens JPG, PNG ou WEBP com até 2 MB. O layout força todas as imagens para o mesmo tamanho usando `object-fit: cover`, evitando quebrar os cards.
