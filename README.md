@@ -103,3 +103,14 @@ Antes de testar o cadastro com imagem, execute novamente o arquivo `sql/schema.s
 - políticas para permitir upload por usuários `seller` e `admin`.
 
 Limite configurado: imagens JPG, PNG ou WEBP com até 2 MB. O layout força todas as imagens para o mesmo tamanho usando `object-fit: cover`, evitando quebrar os cards.
+
+
+## Atualização de preço pelo painel
+
+No painel admin/vendedor, cada produto cadastrado agora possui campos separados para:
+
+- atualizar preço em Tomazinhos;
+- atualizar estoque;
+- ativar ou desativar o produto.
+
+Use o botão **Atualizar preço** quando algum grupo cadastrar o valor errado. O sistema valida para aceitar apenas preço maior que zero.

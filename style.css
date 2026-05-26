@@ -973,3 +973,26 @@ footer {
     height: 170px;
   }
 }
+
+
+.produto-edit-actions {
+  align-items: end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mini-field {
+  display: grid;
+  gap: 4px;
+  min-width: 110px;
+}
+
+.mini-field small {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #6b4b1f;
+}
+
+.produto-edit-actions input {
+  width: 110px;
+}

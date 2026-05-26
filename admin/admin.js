@@ -199,21 +199,38 @@ async function carregarProdutos() {
         <span>${esc(p.descricao || '')}</span>
         <span class="badge">${dinheiro(p.preco)} • Estoque: ${p.estoque} • ${p.ativo ? 'Ativo' : 'Inativo'}</span>
         <small>Grupo: ${esc(p.grupos?.nome || 'sem grupo')} | Turma: ${esc(p.turma || '-')}</small>
-        <div class="row-actions">
-          <input id="estoque-${p.id}" type="number" value="${p.estoque}" min="0" title="Estoque">
-          <button class="mini-btn" onclick="atualizarProduto('${p.id}', { estoque: Number(document.getElementById('estoque-${p.id}').value) })">Atualizar estoque</button>
-          <button class="mini-btn mini-btn-sair" onclick="atualizarProduto('${p.id}', { ativo: ${!p.ativo} })">${p.ativo ? 'Desativar' : 'Ativar'}</button>
+        <div class="row-actions produto-edit-actions">
+          <label class="mini-field">
+            <small>Preço</small>
+            <input id="preco-${p.id}" type="number" value="${p.preco}" min="1" step="1" title="Preço em Tomazinhos">
+          </label>
+          <button class="mini-btn" onclick="atualizarProduto('${p.id}', { preco: Number(document.getElementById('preco-${p.id}').value) }, 'Preço atualizado com sucesso!')">Atualizar preço</button>
+          <label class="mini-field">
+            <small>Estoque</small>
+            <input id="estoque-${p.id}" type="number" value="${p.estoque}" min="0" step="1" title="Estoque">
+          </label>
+          <button class="mini-btn" onclick="atualizarProduto('${p.id}', { estoque: Number(document.getElementById('estoque-${p.id}').value) }, 'Estoque atualizado com sucesso!')">Atualizar estoque</button>
+          <button class="mini-btn mini-btn-sair" onclick="atualizarProduto('${p.id}', { ativo: ${!p.ativo} }, 'Produto ${p.ativo ? 'desativado' : 'ativado'} com sucesso!')">${p.ativo ? 'Desativar' : 'Ativar'}</button>
         </div>
       </div>
     </div>
   `).join('');
 }
 
-async function atualizarProduto(id, dados) {
+async function atualizarProduto(id, dados, textoSucesso = 'Produto atualizado com sucesso!') {
   try {
+    if (dados.preco !== undefined && (!Number.isFinite(dados.preco) || dados.preco <= 0)) {
+      throw new Error('Informe um preço válido maior que zero.');
+    }
+    if (dados.estoque !== undefined && (!Number.isFinite(dados.estoque) || dados.estoque < 0)) {
+      throw new Error('Informe um estoque válido igual ou maior que zero.');
+    }
     await window.TomazinhoAuth.apiFetch('/api/produtos', { method: 'PATCH', body: JSON.stringify({ id, ...dados }) });
+    mensagem('msgProduto', textoSucesso);
     await carregarProdutos();
-  } catch (e) { alert(e.message); }
+  } catch (e) {
+    mensagem('msgProduto', e.message, false);
+  }
 }
 
 async function carregarUsuarios() {

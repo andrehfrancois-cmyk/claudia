@@ -58,6 +58,16 @@ export default async function handler(req, res) {
       ['nome', 'descricao', 'icone', 'imagem_url', 'turma', 'ativo'].forEach(k => { if (body[k] !== undefined) updates[k] = body[k]; });
       ['preco', 'estoque'].forEach(k => { if (body[k] !== undefined) updates[k] = Number(body[k]); });
 
+      if (updates.preco !== undefined && (!Number.isFinite(updates.preco) || updates.preco <= 0)) {
+        return json(res, 400, { error: 'Informe um preço válido maior que zero.' });
+      }
+      if (updates.estoque !== undefined && (!Number.isFinite(updates.estoque) || updates.estoque < 0)) {
+        return json(res, 400, { error: 'Informe um estoque válido igual ou maior que zero.' });
+      }
+      if (!Object.keys(updates).length) {
+        return json(res, 400, { error: 'Nenhuma alteração enviada.' });
+      }
+
       let query = admin.from('produtos').update(updates).eq('id', id);
       if (perfil.tipo === 'seller') query = query.eq('grupo_id', perfil.grupo_id);
       const { data, error } = await query.select().single();
