@@ -1,118 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel - Feira do Tomazinho</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel do Professor - Feira do Tomazinho</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css" />
 </head>
-<body class="admin-page">
-  <div class="admin-shell">
-    <header class="admin-header">
+<body>
+  <main class="admin-wrap">
+    <div class="secao-titulo">
       <div>
-        <h1>Painel do Tomazinho 🪙</h1>
-        <p id="statusPainel">Entre com Google para acessar o painel.</p>
+        <h3>Painel do Professor</h3>
+        <p>Cadastro de produtos, alunos e controle de vendas</p>
       </div>
-      <div class="row-actions">
-        <a class="btn btn-branco" href="../index.html">🏠 Loja</a>
-        <button class="btn btn-amarelo" id="btnLogin" onclick="loginGoogle()">Entrar com Google</button>
-        <button class="btn btn-branco" id="btnLogout" onclick="logout()" style="display:none">Sair</button>
-      </div>
-    </header>
+      <a class="btn btn-secundario" href="/">Voltar para loja</a>
+    </div>
 
-    <main class="admin-grid" id="conteudoPainel" style="display:none">
-      <section class="admin-card">
-        <h2>Cadastrar produto</h2>
-        <p>Os 4 grupos vendedores devem cadastrar aqui os produtos de suas respectivas turmas/grupos.</p>
-        <div class="form-grid">
-          <input id="nome" placeholder="Nome do produto">
-          <input id="preco" type="number" min="1" placeholder="Preço em Tomazinhos">
-          <input id="estoque" type="number" min="0" placeholder="Estoque">
-          <input id="turma" placeholder="Turma ou sala responsável">
-          <div class="file-field span-2">
-            <label for="imagemProduto">Imagem do produto</label>
-            <input id="imagemProduto" type="file" accept="image/png,image/jpeg,image/webp" onchange="previewImagemProduto()">
-            <small>Use JPG, PNG ou WEBP. O sistema padroniza o tamanho no card. Recomendado: até 2 MB.</small>
-            <img id="previewProduto" class="preview-produto" alt="Prévia da imagem" style="display:none">
+    <section class="admin-grid">
+      <article class="quadro">
+        <h4>Cadastrar produto</h4>
+        <div class="campos-admin">
+          <div class="campo">
+            <label for="nome">Nome do produto</label>
+            <input id="nome" type="text" placeholder="Ex.: Chaveiro personalizado">
           </div>
-          <select id="grupoProduto"></select>
-          <textarea id="descricao" placeholder="Descrição do produto"></textarea>
-          <button class="btn btn-principal span-2" onclick="cadastrarProduto()">Cadastrar produto</button>
-        </div>
-        <div class="mensagem" id="msgProduto"></div>
-      </section>
-
-      <section class="admin-card" id="cardGrupos">
-        <h2>Grupos vendedores</h2>
-        <p>Use para identificar os 4 grupos do Ensino Médio que cadastram produtos.</p>
-        <div class="form-grid">
-          <input id="nomeGrupo" placeholder="Nome do grupo">
-          <input id="descricaoGrupo" placeholder="Descrição curta">
-          <button class="btn btn-secundario span-2" onclick="criarGrupo()">Criar grupo</button>
-        </div>
-        <div id="listaGrupos" class="admin-list"></div>
-      </section>
-
-      <section class="admin-card full" id="cardUsuarios">
-        <h2>Usuários, permissões e saldos</h2>
-        <p>Depois que a pessoa entrar com Google pela primeira vez, ela aparece aqui como pendente. Defina os 4 grupos como <strong>vendedor</strong> e os demais alunos como <strong>comprador</strong>.</p>
-
-        <div class="admin-toolbar">
-          <input id="buscaUsuario" placeholder="Buscar por nome ou e-mail" oninput="renderizarUsuarios()">
-          <select id="filtroTipo" onchange="renderizarUsuarios()">
-            <option value="">Todos os tipos</option>
-            <option value="pendente">Pendentes</option>
-            <option value="student">Compradores</option>
-            <option value="seller">Vendedores</option>
-            <option value="admin">Admins</option>
-          </select>
-          <input id="filtroTurma" placeholder="Filtrar turma/grupo" oninput="renderizarUsuarios()">
-          <button class="mini-btn" onclick="selecionarFiltrados(true)">Selecionar filtrados</button>
-          <button class="mini-btn mini-btn-sair" onclick="selecionarFiltrados(false)">Limpar seleção</button>
+          <div class="campo">
+            <label for="preco">Preço em Tomazinhos</label>
+            <input id="preco" type="number" min="1" placeholder="Ex.: 8">
+          </div>
+          <div class="campo">
+            <label for="turma">Turma</label>
+            <input id="turma" type="text" placeholder="Ex.: 2ºA">
+          </div>
+          <div class="campo">
+            <label for="icone">Emoji / ícone</label>
+            <input id="icone" type="text" placeholder="Ex.: 🎁">
+          </div>
+          <div class="campo">
+            <label for="descricao">Descrição</label>
+            <textarea id="descricao" rows="4" placeholder="Descrição do produto"></textarea>
+          </div>
         </div>
 
-        <div class="bulk-panel">
-          <strong id="selecionadosInfo">0 selecionados</strong>
-          <select id="bulkTipo">
-            <option value="">Manter tipo</option>
-            <option value="student">Definir como comprador</option>
-            <option value="seller">Definir como vendedor</option>
-            <option value="admin">Definir como admin</option>
-            <option value="pendente">Voltar para pendente</option>
-          </select>
-          <input id="bulkTurma" placeholder="Turma/grupo em massa">
-          <select id="bulkGrupo"></select>
-          <select id="bulkSaldoModo">
-            <option value="">Manter saldo</option>
-            <option value="set">Definir saldo</option>
-            <option value="add">Somar pontos</option>
-            <option value="subtract">Remover pontos</option>
-          </select>
-          <input id="bulkSaldoValor" type="number" min="0" placeholder="Valor">
-          <button class="btn btn-principal" onclick="aplicarAcaoMassa()">Aplicar nos selecionados</button>
+        <div class="acoes-carrinho">
+          <button class="btn btn-principal" onclick="cadastrarProduto()">Salvar produto</button>
+          <button class="btn btn-secundario" onclick="limparFormulario()">Limpar</button>
         </div>
+        <div class="mensagem" id="mensagemAdmin"></div>
+      </article>
 
-        <div class="mensagem" id="msgUsuarios"></div>
-        <div id="listaUsuarios" class="admin-list usuarios-list"></div>
-      </section>
+      <article class="quadro">
+        <h4>Produtos cadastrados</h4>
+        <div id="listaProdutos" class="lista-admin"></div>
+      </article>
+    </section>
 
-      <section class="admin-card full">
-        <h2>Produtos cadastrados</h2>
-        <div id="listaProdutos" class="admin-list"></div>
-      </section>
+    <section class="admin-grid admin-extra">
+      <article class="quadro">
+        <h4>Alunos e saldos</h4>
+        <div id="listaAlunos" class="lista-admin"></div>
+      </article>
 
-      <section class="admin-card full">
-        <h2>Vendas recentes</h2>
-        <div id="listaVendas" class="admin-list"></div>
-      </section>
-    </main>
-  </div>
+      <article class="quadro">
+        <h4>Vendas realizadas</h4>
+        <div id="listaVendas" class="lista-vendas"></div>
+      </article>
+    </section>
+  </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../lib/supabase-client.js"></script>
-  <script src="admin.js"></script>
+  <script src="./admin.js"></script>
 </body>
 </html>

@@ -1,82 +1,57 @@
-import { adminClient, getPerfil, json } from './_helpers.js';
+import { CHAVES, lerLista, salvarLista } from "./redis.js";
 
 export default async function handler(req, res) {
   try {
-    const admin = adminClient();
-
-    if (req.method === 'GET') {
-      const somenteAtivos = req.query?.todos !== '1';
-      let query = admin
-        .from('produtos')
-        .select('id,nome,descricao,preco,estoque,icone,imagem_url,turma,ativo,grupo_id,grupos(nome)')
-        .order('created_at', { ascending: false });
-      if (somenteAtivos) query = query.eq('ativo', true).gt('estoque', 0);
-      const { data, error } = await query;
-      if (error) throw error;
-      return json(res, 200, data);
+    if (req.method === "GET") {
+      const produtos = await lerLista(CHAVES.produtos);
+      return res.status(200).json(produtos);
     }
 
-    if (req.method === 'POST') {
-      const { user, perfil } = await getPerfil(req);
-      if (!user || !perfil) return json(res, 401, { error: 'Faça login.' });
-      if (!['seller', 'admin'].includes(perfil.tipo)) return json(res, 403, { error: 'Apenas vendedores ou admin podem cadastrar produtos.' });
+    if (req.method === "POST") {
+      const { nome, preco, turma, icone, descricao } = req.body || {};
 
-      const body = req.body;
-      const nome = String(body.nome || '').trim();
-      const preco = Number(body.preco || 0);
-      const estoque = Number(body.estoque || 0);
-      if (!nome || preco <= 0 || estoque < 0) return json(res, 400, { error: 'Preencha nome, preço e estoque corretamente.' });
+      if (!nome || !preco || !turma || !icone) {
+        return res.status(400).json({
+          erro: "Preencha nome, preço, turma e ícone."
+        });
+      }
 
-      const grupo_id = perfil.tipo === 'admin' ? (body.grupo_id || perfil.grupo_id) : perfil.grupo_id;
-      if (!grupo_id) return json(res, 400, { error: 'Este usuário vendedor precisa estar vinculado a um grupo.' });
+      const produtos = await lerLista(CHAVES.produtos);
+      const novoProduto = {
+        id: Date.now(),
+        nome: String(nome).trim(),
+        preco: Number(preco),
+        turma: String(turma).trim(),
+        icone: String(icone).trim(),
+        descricao: descricao
+          ? String(descricao).trim()
+          : "Produto criado pelos alunos."
+      };
 
-      const { data, error } = await admin.from('produtos').insert({
-        nome,
-        descricao: body.descricao || '',
-        preco,
-        estoque,
-        icone: body.icone || '🛍️',
-        imagem_url: body.imagem_url || '',
-        turma: body.turma || '',
-        grupo_id,
-        criado_por: user.id,
-        ativo: true
-      }).select().single();
+      produtos.push(novoProduto);
+      await salvarLista(CHAVES.produtos, produtos);
 
-      if (error) throw error;
-      return json(res, 200, { sucesso: true, produto: data });
+      return res.status(201).json({ sucesso: true, produto: novoProduto });
     }
 
-    if (req.method === 'PATCH') {
-      const { perfil } = await getPerfil(req);
-      if (!perfil || !['seller', 'admin'].includes(perfil.tipo)) return json(res, 403, { error: 'Sem permissão.' });
-      const body = req.body;
-      const id = body.id;
-      if (!id) return json(res, 400, { error: 'Produto sem ID.' });
+    if (req.method === "DELETE") {
+      const id = Number(req.query.id);
 
-      const updates = {};
-      ['nome', 'descricao', 'icone', 'imagem_url', 'turma', 'ativo'].forEach(k => { if (body[k] !== undefined) updates[k] = body[k]; });
-      ['preco', 'estoque'].forEach(k => { if (body[k] !== undefined) updates[k] = Number(body[k]); });
-
-      if (updates.preco !== undefined && (!Number.isFinite(updates.preco) || updates.preco <= 0)) {
-        return json(res, 400, { error: 'Informe um preço válido maior que zero.' });
-      }
-      if (updates.estoque !== undefined && (!Number.isFinite(updates.estoque) || updates.estoque < 0)) {
-        return json(res, 400, { error: 'Informe um estoque válido igual ou maior que zero.' });
-      }
-      if (!Object.keys(updates).length) {
-        return json(res, 400, { error: 'Nenhuma alteração enviada.' });
+      if (!id) {
+        await salvarLista(CHAVES.produtos, []);
+        return res.status(200).json({ sucesso: true });
       }
 
-      let query = admin.from('produtos').update(updates).eq('id', id);
-      if (perfil.tipo === 'seller') query = query.eq('grupo_id', perfil.grupo_id);
-      const { data, error } = await query.select().single();
-      if (error) throw error;
-      return json(res, 200, { sucesso: true, produto: data });
+      const produtos = await lerLista(CHAVES.produtos);
+      const atualizados = produtos.filter((produto) => Number(produto.id) !== id);
+      await salvarLista(CHAVES.produtos, atualizados);
+
+      return res.status(200).json({ sucesso: true });
     }
 
-    return json(res, 405, { error: 'Método não permitido.' });
-  } catch (e) {
-    return json(res, 500, { error: e.message });
+    return res.status(405).json({ erro: "Método não permitido." });
+  } catch (error) {
+    console.error("Erro na API de produtos:", error);
+    return res.status(500).json({ erro: "Erro interno ao processar produtos." });
   }
 }
