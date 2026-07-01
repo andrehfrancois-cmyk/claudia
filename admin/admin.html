@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel do Professor - Feira do Tomazinho</title>
+  <title>Painel - Feira do Tomazinho</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
@@ -14,9 +14,13 @@
     <div class="secao-titulo">
       <div>
         <h3>Painel do Professor</h3>
-        <p>Cadastro de produtos, alunos e controle de vendas</p>
+        <p id="statusAdmin">Carregando...</p>
       </div>
-      <a class="btn btn-secundario" href="/">Voltar para loja</a>
+      <div class="acoes-carrinho">
+        <a class="btn btn-secundario" href="/">Voltar para loja</a>
+        <button class="btn btn-secundario" onclick="loginGoogle()" id="btnLoginAdmin">Entrar</button>
+        <button class="btn btn-secundario" onclick="logout()" id="btnLogoutAdmin" style="display:none">Sair</button>
+      </div>
     </div>
 
     <section class="admin-grid">
@@ -32,12 +36,24 @@
             <input id="preco" type="number" min="1" placeholder="Ex.: 8">
           </div>
           <div class="campo">
+            <label for="estoque">Estoque</label>
+            <input id="estoque" type="number" min="0" placeholder="Ex.: 20">
+          </div>
+          <div class="campo">
             <label for="turma">Turma</label>
             <input id="turma" type="text" placeholder="Ex.: 2ºA">
           </div>
           <div class="campo">
+            <label for="grupo">Grupo vendedor</label>
+            <select id="grupo"></select>
+          </div>
+          <div class="campo">
             <label for="icone">Emoji / ícone</label>
             <input id="icone" type="text" placeholder="Ex.: 🎁">
+          </div>
+          <div class="campo">
+            <label for="imagemUrl">Link da imagem</label>
+            <input id="imagemUrl" type="url" placeholder="https://...">
           </div>
           <div class="campo">
             <label for="descricao">Descrição</label>
@@ -60,17 +76,34 @@
 
     <section class="admin-grid admin-extra">
       <article class="quadro">
-        <h4>Alunos e saldos</h4>
-        <div id="listaAlunos" class="lista-admin"></div>
+        <h4>Usuários</h4>
+        <div id="listaUsuarios" class="lista-admin"></div>
       </article>
 
       <article class="quadro">
-        <h4>Vendas realizadas</h4>
-        <div id="listaVendas" class="lista-vendas"></div>
+        <h4>Ajuste em massa</h4>
+        <div class="campos-admin">
+          <div class="campo">
+            <label for="saldoModo">Ação de saldo</label>
+            <select id="saldoModo">
+              <option value="">Não alterar</option>
+              <option value="set">Definir saldo</option>
+              <option value="add">Adicionar Tomazinhos</option>
+              <option value="subtract">Remover Tomazinhos</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="saldoValor">Valor</label>
+            <input id="saldoValor" type="number" min="0" placeholder="Ex.: 50">
+          </div>
+          <button class="btn btn-principal" onclick="aplicarSaldoSelecionados()">Aplicar aos selecionados</button>
+        </div>
       </article>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../lib/supabase-client.js"></script>
   <script src="./admin.js"></script>
 </body>
 </html>

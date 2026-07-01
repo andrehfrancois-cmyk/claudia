@@ -15,16 +15,17 @@
       <span class="selo">Moeda escolar</span>
       <h1>Feira do Tomazinho</h1>
       <p>
-        Escolha seu nome, confira o saldo e compre os produtos criados pelos alunos.
+        Entre com sua conta, confira seu saldo e compre os produtos criados pelos grupos.
       </p>
 
       <div class="aluno-box">
-        <label for="nomeAluno">Nome do aluno comprador</label>
-        <div class="linha-aluno">
-          <input id="nomeAluno" type="text" placeholder="Digite o nome do aluno">
-          <button class="btn btn-branco" onclick="entrarAluno()">Entrar</button>
+        <span>Conta</span>
+        <strong id="usuarioAtual">Carregando...</strong>
+        <div class="botoes-hero compacta">
+          <button class="btn btn-branco" id="btnLogin" onclick="loginGoogle()">Entrar com Google</button>
+          <button class="btn btn-branco" id="btnLogout" onclick="logout()" style="display:none">Sair</button>
+          <a class="btn btn-branco" id="btnAdmin" href="/admin/admin.html" style="display:none">Painel</a>
         </div>
-        <strong id="alunoAtual">Nenhum aluno selecionado</strong>
       </div>
 
       <div class="saldo-box">
@@ -34,7 +35,6 @@
 
       <div class="botoes-hero">
         <a class="btn btn-amarelo" href="#produtos">Ver produtos</a>
-        <a class="btn btn-branco" href="/admin/admin.html">Painel do professor</a>
       </div>
     </section>
 
@@ -55,26 +55,26 @@
       <article class="info">
         <div class="icone">T</div>
         <h4>Saldo controlado</h4>
-        <p>Cada aluno começa com 50 Tomazinhos e o saldo é atualizado a cada compra.</p>
+        <p>O saldo do aluno fica salvo no Supabase e é descontado a cada compra.</p>
       </article>
       <article class="info">
         <div class="icone">🛍️</div>
-        <h4>Produtos da turma</h4>
-        <p>O painel do professor cadastra produtos, preços, turma e descrição.</p>
+        <h4>Produtos dos grupos</h4>
+        <p>Os vendedores cadastram produtos, preços, estoque e imagens.</p>
       </article>
       <article class="info">
-        <div class="icone">↩</div>
-        <h4>Estorno simples</h4>
-        <p>Se uma venda for excluída, o valor volta automaticamente para o aluno.</p>
+        <div class="icone">✓</div>
+        <h4>Compra segura</h4>
+        <p>A compra baixa estoque, desconta saldo e registra histórico no banco.</p>
       </article>
     </section>
 
     <section id="produtos">
       <div class="secao-titulo">
         <h3>Produtos disponíveis</h3>
-        <p>Escolha e finalize pelo carrinho</p>
+        <p>Escolha um produto para comprar</p>
       </div>
-      <div class="grade-produtos"></div>
+      <div class="grade-produtos" id="gradeProdutos"></div>
     </section>
 
     <section class="painel">
@@ -83,30 +83,22 @@
         <div class="passos">
           <div class="passo">
             <span class="numero">1</span>
-            <p>Digite o nome do aluno comprador e clique em entrar.</p>
+            <p>Entre com Google e aguarde o professor liberar seu usuário como comprador.</p>
           </div>
           <div class="passo">
             <span class="numero">2</span>
-            <p>Adicione os produtos ao carrinho e confira o total.</p>
+            <p>Escolha um produto disponível e confirme a compra.</p>
           </div>
           <div class="passo">
             <span class="numero">3</span>
-            <p>Finalize a compra. A venda ficará registrada no painel do professor.</p>
+            <p>Seu saldo e o estoque são atualizados automaticamente.</p>
           </div>
         </div>
       </article>
 
       <article class="quadro">
-        <h4>Carrinho</h4>
-        <div id="listaCarrinho" class="lista-carrinho"></div>
-        <div class="total-box">
-          <span>Total</span>
-          <strong id="totalCarrinho">0 Tomazinhos</strong>
-        </div>
-        <div class="acoes-carrinho">
-          <button class="btn btn-secundario" onclick="limparCarrinho()">Limpar</button>
-          <button class="btn btn-principal" onclick="finalizarCompra()">Finalizar compra</button>
-        </div>
+        <h4>Minhas compras</h4>
+        <div id="listaCompras" class="lista-carrinho"></div>
         <div class="mensagem" id="mensagemCompra"></div>
       </article>
     </section>
@@ -116,6 +108,8 @@
     Feira do Tomazinho - Projeto escolar de empreendedorismo e educação financeira
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="lib/supabase-client.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

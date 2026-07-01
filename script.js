@@ -1,35 +1,8 @@
-let alunoAtual = null;
-let carrinho = [];
+let perfilAtual = null;
+let sessionAtual = null;
 
 function dinheiro(valor) {
-  return `${Number(valor)} Tomazinhos`;
-}
-
-function atualizarTela() {
-  document.getElementById("saldoTomazinho").textContent = alunoAtual
-    ? dinheiro(alunoAtual.saldo)
-    : "0 Tomazinhos";
-
-  document.getElementById("alunoAtual").textContent = alunoAtual
-    ? `Aluno: ${alunoAtual.nome}`
-    : "Nenhum aluno selecionado";
-
-  const lista = document.getElementById("listaCarrinho");
-  const total = carrinho.reduce((soma, item) => soma + Number(item.preco), 0);
-  document.getElementById("totalCarrinho").textContent = dinheiro(total);
-
-  if (carrinho.length === 0) {
-    lista.innerHTML = '<div class="item-carrinho">Nenhum produto escolhido ainda.</div>';
-    return;
-  }
-
-  lista.innerHTML = carrinho.map((item, index) => `
-    <div class="item-carrinho">
-      <span>${item.nome}</span>
-      <strong>${item.preco} T</strong>
-      <button class="btn-pequeno btn-secundario" onclick="removerDoCarrinho(${index})">Remover</button>
-    </div>
-  `).join("");
+  return `${Number(valor || 0)} Tomazinhos`;
 }
 
 function mostrarMensagem(texto, sucesso = true) {
@@ -41,108 +14,66 @@ function mostrarMensagem(texto, sucesso = true) {
   mensagem.style.borderColor = sucesso ? "#c8f0d2" : "#ffc8c4";
 }
 
-async function entrarAluno() {
-  const nome = document.getElementById("nomeAluno").value.trim();
+function atualizarCabecalho() {
+  const usuario = document.getElementById("usuarioAtual");
+  const saldo = document.getElementById("saldoTomazinho");
+  const btnLogin = document.getElementById("btnLogin");
+  const btnLogout = document.getElementById("btnLogout");
+  const btnAdmin = document.getElementById("btnAdmin");
 
-  if (!nome) {
-    mostrarMensagem("Digite o nome do aluno para iniciar a compra.", false);
+  if (!sessionAtual) {
+    usuario.textContent = "Entre para começar";
+    saldo.textContent = "0 Tomazinhos";
+    btnLogin.style.display = "inline-flex";
+    btnLogout.style.display = "none";
+    btnAdmin.style.display = "none";
     return;
   }
 
-  const res = await fetch("/api/alunos", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nome })
-  });
-
-  const dados = await res.json();
-
-  if (!res.ok) {
-    mostrarMensagem(dados.erro || "Erro ao carregar aluno.", false);
-    return;
-  }
-
-  alunoAtual = dados;
-  carrinho = [];
-  atualizarTela();
-  mostrarMensagem(`Aluno ${alunoAtual.nome} carregado com sucesso.`);
+  usuario.textContent = perfilAtual
+    ? `${perfilAtual.nome || sessionAtual.user.email} (${perfilAtual.tipo})`
+    : sessionAtual.user.email;
+  saldo.textContent = dinheiro(perfilAtual?.saldo || 0);
+  btnLogin.style.display = "none";
+  btnLogout.style.display = "inline-flex";
+  btnAdmin.style.display = ["seller", "admin"].includes(perfilAtual?.tipo)
+    ? "inline-flex"
+    : "none";
 }
 
-function adicionarAoCarrinho(nome, preco) {
-  if (!alunoAtual) {
-    mostrarMensagem("Escolha o aluno comprador antes de adicionar produtos.", false);
+async function carregarPerfil() {
+  sessionAtual = await TomazinhoAuth.getSession();
+
+  if (!sessionAtual) {
+    perfilAtual = null;
+    atualizarCabecalho();
     return;
   }
 
-  carrinho.push({ nome, preco: Number(preco) });
-  atualizarTela();
-  mostrarMensagem(`${nome} foi adicionado ao carrinho.`);
-}
-
-function removerDoCarrinho(index) {
-  carrinho.splice(index, 1);
-  atualizarTela();
-}
-
-function limparCarrinho() {
-  carrinho = [];
-  atualizarTela();
-  mostrarMensagem("Carrinho limpo com sucesso.");
-}
-
-async function finalizarCompra() {
-  const total = carrinho.reduce((soma, item) => soma + Number(item.preco), 0);
-
-  if (!alunoAtual) {
-    mostrarMensagem("Escolha o aluno comprador antes de finalizar.", false);
-    return;
+  try {
+    const dados = await TomazinhoAuth.apiFetch("/api/perfil");
+    perfilAtual = dados.perfil;
+  } catch (error) {
+    perfilAtual = null;
+    mostrarMensagem(error.message, false);
   }
 
-  if (carrinho.length === 0) {
-    mostrarMensagem("Escolha pelo menos um produto antes de finalizar.", false);
-    return;
-  }
-
-  if (total > Number(alunoAtual.saldo)) {
-    mostrarMensagem("O aluno não tem Tomazinhos suficientes para essa compra.", false);
-    return;
-  }
-
-  const res = await fetch("/api/vendas", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      alunoId: alunoAtual.id,
-      itens: carrinho
-    })
-  });
-
-  const dados = await res.json();
-
-  if (!res.ok) {
-    mostrarMensagem(dados.erro || "Erro ao finalizar a venda.", false);
-    return;
-  }
-
-  alunoAtual = dados.aluno;
-  const quantidade = carrinho.length;
-  carrinho = [];
-  atualizarTela();
-  mostrarMensagem(`Compra concluída! ${quantidade} item(ns) registrado(s).`);
+  atualizarCabecalho();
 }
 
 async function carregarProdutos() {
-  try {
-    const res = await fetch("/api/produtos");
-    const produtos = await res.json();
-    const grade = document.querySelector(".grade-produtos");
+  const grade = document.getElementById("gradeProdutos");
 
-    if (!Array.isArray(produtos) || produtos.length === 0) {
+  try {
+    const produtos = await TomazinhoAuth.apiFetch("/api/produtos");
+    const ativos = produtos.filter((produto) => produto.ativo !== false);
+
+    if (!ativos.length) {
       grade.innerHTML = `
         <article class="produto">
           <div class="produto-icone">🛍️</div>
           <h4>Nenhum produto ainda</h4>
-          <p>Os produtos aparecerão aqui depois do cadastro no painel do professor.</p>
+          <p>Os grupos vendedores ainda vão cadastrar os produtos da feira.</p>
           <div class="rodape-card">
             <span class="preco">Em breve</span>
           </div>
@@ -151,28 +82,108 @@ async function carregarProdutos() {
       return;
     }
 
-    grade.innerHTML = produtos.map((produto) => {
-      const nomeSeguro = String(produto.nome).replace(/'/g, "\\'");
+    grade.innerHTML = ativos.map((produto) => {
+      const imagem = produto.imagem_url
+        ? `<img class="produto-img" src="${produto.imagem_url}" alt="${produto.nome}">`
+        : `<div class="produto-icone">${produto.icone || "🛍️"}</div>`;
+
+      const semEstoque = Number(produto.estoque || 0) <= 0;
+
       return `
         <article class="produto">
-          <span class="tag-turma">Turma ${produto.turma}</span>
-          <div class="produto-icone">${produto.icone}</div>
+          <span class="tag-turma">${produto.grupos?.nome || produto.turma || "Grupo"}</span>
+          ${imagem}
           <h4>${produto.nome}</h4>
           <p>${produto.descricao || "Produto criado pelos alunos."}</p>
           <div class="rodape-card">
             <span class="preco">${produto.preco} Tomazinhos</span>
-            <button class="btn-comprar" onclick="adicionarAoCarrinho('${nomeSeguro}', ${Number(produto.preco)})">
-              Comprar
+            <small>Estoque: ${produto.estoque}</small>
+            <button
+              class="btn-comprar"
+              onclick="comprarProduto('${produto.id}')"
+              ${semEstoque ? "disabled" : ""}
+            >
+              ${semEstoque ? "Esgotado" : "Comprar"}
             </button>
           </div>
         </article>
       `;
     }).join("");
   } catch (error) {
-    console.error(error);
-    mostrarMensagem("Não foi possível carregar os produtos.", false);
+    grade.innerHTML = `
+      <article class="produto">
+        <div class="produto-icone">!</div>
+        <h4>Erro ao carregar</h4>
+        <p>${error.message}</p>
+      </article>
+    `;
   }
 }
 
-atualizarTela();
-carregarProdutos();
+async function comprarProduto(produtoId) {
+  if (!sessionAtual) {
+    mostrarMensagem("Entre com Google antes de comprar.", false);
+    return;
+  }
+
+  if (perfilAtual?.tipo !== "student") {
+    mostrarMensagem("Apenas alunos compradores liberados podem finalizar compras.", false);
+    return;
+  }
+
+  const confirmar = confirm("Confirmar compra deste produto?");
+  if (!confirmar) return;
+
+  try {
+    await TomazinhoAuth.apiFetch("/api/comprar", {
+      method: "POST",
+      body: JSON.stringify({ produto_id: produtoId, quantidade: 1 })
+    });
+    mostrarMensagem("Compra concluída com sucesso.");
+    await carregarPerfil();
+    await carregarProdutos();
+    await carregarCompras();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
+  }
+}
+
+async function carregarCompras() {
+  const lista = document.getElementById("listaCompras");
+
+  if (!sessionAtual) {
+    lista.innerHTML = '<div class="item-carrinho">Entre com Google para ver seu histórico.</div>';
+    return;
+  }
+
+  try {
+    const compras = await TomazinhoAuth.apiFetch("/api/minhas-compras");
+
+    if (!compras.length) {
+      lista.innerHTML = '<div class="item-carrinho">Nenhuma compra registrada ainda.</div>';
+      return;
+    }
+
+    lista.innerHTML = compras.map((compra) => `
+      <div class="item-carrinho">
+        <span>${compra.produtos?.nome || "Produto"} x${compra.quantidade}</span>
+        <strong>${compra.total} T</strong>
+      </div>
+    `).join("");
+  } catch (error) {
+    lista.innerHTML = `<div class="item-carrinho">${error.message}</div>`;
+  }
+}
+
+async function iniciar() {
+  try {
+    await TomazinhoAuth.initSupabase();
+    await carregarPerfil();
+    await carregarProdutos();
+    await carregarCompras();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
+  }
+}
+
+iniciar();

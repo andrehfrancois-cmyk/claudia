@@ -1,3 +1,7 @@
+let perfilAtual = null;
+let grupos = [];
+let usuarios = [];
+
 function mostrarMensagem(texto, sucesso = true) {
   const box = document.getElementById("mensagemAdmin");
   box.style.display = "block";
@@ -8,87 +12,81 @@ function mostrarMensagem(texto, sucesso = true) {
 }
 
 function limparFormulario() {
-  document.getElementById("nome").value = "";
-  document.getElementById("preco").value = "";
-  document.getElementById("turma").value = "";
-  document.getElementById("icone").value = "";
-  document.getElementById("descricao").value = "";
+  ["nome", "preco", "estoque", "turma", "icone", "imagemUrl", "descricao"].forEach((id) => {
+    document.getElementById(id).value = "";
+  });
+}
+
+async function carregarPerfil() {
+  const session = await TomazinhoAuth.getSession();
+  const status = document.getElementById("statusAdmin");
+  const btnLogin = document.getElementById("btnLoginAdmin");
+  const btnLogout = document.getElementById("btnLogoutAdmin");
+
+  if (!session) {
+    status.textContent = "Entre com Google para acessar o painel.";
+    btnLogin.style.display = "inline-flex";
+    btnLogout.style.display = "none";
+    return false;
+  }
+
+  btnLogin.style.display = "none";
+  btnLogout.style.display = "inline-flex";
+
+  const dados = await TomazinhoAuth.apiFetch("/api/perfil");
+  perfilAtual = dados.perfil;
+
+  if (!["seller", "admin"].includes(perfilAtual?.tipo)) {
+    status.textContent = "Usuário sem permissão para o painel.";
+    mostrarMensagem("Peça ao professor para liberar seu usuário como vendedor ou admin.", false);
+    return false;
+  }
+
+  status.textContent = `${perfilAtual.nome || dados.user.email} - ${perfilAtual.tipo}`;
+  return true;
+}
+
+async function carregarGrupos() {
+  grupos = await TomazinhoAuth.apiFetch("/api/grupos");
+  const select = document.getElementById("grupo");
+
+  select.innerHTML = '<option value="">Sem grupo</option>' + grupos.map((grupo) => `
+    <option value="${grupo.id}">${grupo.nome}</option>
+  `).join("");
+
+  if (perfilAtual?.grupo_id) select.value = perfilAtual.grupo_id;
 }
 
 async function cadastrarProduto() {
   const produto = {
     nome: document.getElementById("nome").value.trim(),
     preco: Number(document.getElementById("preco").value),
+    estoque: Number(document.getElementById("estoque").value || 0),
     turma: document.getElementById("turma").value.trim(),
-    icone: document.getElementById("icone").value.trim(),
+    grupo_id: document.getElementById("grupo").value || null,
+    icone: document.getElementById("icone").value.trim() || "🛍️",
+    imagem_url: document.getElementById("imagemUrl").value.trim(),
     descricao: document.getElementById("descricao").value.trim()
   };
 
-  const res = await fetch("/api/produtos", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(produto)
-  });
-
-  const dados = await res.json();
-
-  if (!res.ok) {
-    mostrarMensagem(dados.erro || "Erro ao salvar produto.", false);
-    return;
+  try {
+    await TomazinhoAuth.apiFetch("/api/produtos", {
+      method: "POST",
+      body: JSON.stringify(produto)
+    });
+    mostrarMensagem("Produto cadastrado com sucesso.");
+    limparFormulario();
+    await carregarProdutos();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
   }
-
-  mostrarMensagem("Produto cadastrado com sucesso.");
-  limparFormulario();
-  carregarTudo();
-}
-
-async function excluirProduto(id) {
-  const confirmar = confirm("Deseja excluir este produto?");
-  if (!confirmar) return;
-
-  const res = await fetch(`/api/produtos?id=${id}`, {
-    method: "DELETE"
-  });
-
-  const dados = await res.json();
-
-  if (!res.ok) {
-    mostrarMensagem(dados.erro || "Erro ao excluir produto.", false);
-    return;
-  }
-
-  mostrarMensagem("Produto excluído com sucesso.");
-  carregarTudo();
-}
-
-async function excluirVenda(id, alunoNome, total) {
-  const confirmar = confirm(
-    `Excluir esta venda e devolver ${total} Tomazinhos para ${alunoNome}?`
-  );
-
-  if (!confirmar) return;
-
-  const res = await fetch(`/api/vendas?id=${id}`, {
-    method: "DELETE"
-  });
-
-  const dados = await res.json();
-
-  if (!res.ok) {
-    mostrarMensagem(dados.erro || "Erro ao excluir venda.", false);
-    return;
-  }
-
-  mostrarMensagem(dados.mensagem || "Venda excluída e saldo devolvido.");
-  carregarTudo();
 }
 
 async function carregarProdutos() {
-  const res = await fetch("/api/produtos");
-  const produtos = await res.json();
+  const produtos = await TomazinhoAuth.apiFetch("/api/produtos");
   const lista = document.getElementById("listaProdutos");
 
-  if (!Array.isArray(produtos) || produtos.length === 0) {
+  if (!produtos.length) {
     lista.innerHTML = '<div class="item-admin">Nenhum produto cadastrado ainda.</div>';
     return;
   }
@@ -96,76 +94,145 @@ async function carregarProdutos() {
   lista.innerHTML = produtos.map((produto) => `
     <div class="item-admin">
       <div>
-        <strong>${produto.icone} ${produto.nome}</strong><br>
-        <span>Turma ${produto.turma} - ${produto.preco} Tomazinhos</span><br>
-        <small>${produto.descricao || ""}</small>
+        <strong>${produto.icone || "🛍️"} ${produto.nome}</strong><br>
+        <span>${produto.preco} T - estoque ${produto.estoque} - ${produto.ativo ? "ativo" : "inativo"}</span><br>
+        <small>${produto.grupos?.nome || produto.turma || ""}</small>
       </div>
-      <button class="btn-pequeno btn-excluir" onclick="excluirProduto(${produto.id})">
-        Excluir
-      </button>
-    </div>
-  `).join("");
-}
-
-async function carregarAlunos() {
-  const res = await fetch("/api/alunos");
-  const alunos = await res.json();
-  const lista = document.getElementById("listaAlunos");
-
-  if (!Array.isArray(alunos) || alunos.length === 0) {
-    lista.innerHTML = '<div class="item-admin">Nenhum aluno entrou na loja ainda.</div>';
-    return;
-  }
-
-  lista.innerHTML = alunos.map((aluno) => `
-    <div class="item-admin">
-      <div>
-        <strong>${aluno.nome}</strong><br>
-        <span>Saldo: ${aluno.saldo} Tomazinhos</span>
-      </div>
-    </div>
-  `).join("");
-}
-
-async function carregarVendas() {
-  const res = await fetch("/api/vendas");
-  const vendas = await res.json();
-  const lista = document.getElementById("listaVendas");
-
-  if (!Array.isArray(vendas) || vendas.length === 0) {
-    lista.innerHTML = '<div class="item-venda">Nenhuma venda registrada ainda.</div>';
-    return;
-  }
-
-  lista.innerHTML = vendas.map((venda) => {
-    const itens = venda.itens
-      .map((item) => `${item.nome} (${item.preco} T)`)
-      .join(", ");
-
-    return `
-      <div class="item-venda">
-        <div>
-          <strong>${venda.alunoNome} - ${venda.total} Tomazinhos</strong><br>
-          <small>${venda.data}</small><br>
-          <span>${itens}</span>
-        </div>
-        <button
-          class="btn-pequeno btn-excluir"
-          onclick="excluirVenda(${venda.id}, '${String(venda.alunoNome).replace(/'/g, "\\'")}', ${venda.total})"
-        >
-          Excluir e devolver saldo
+      <div class="acoes-item">
+        <input class="input-mini" id="preco-${produto.id}" type="number" min="1" value="${produto.preco}">
+        <input class="input-mini" id="estoque-${produto.id}" type="number" min="0" value="${produto.estoque}">
+        <button class="btn-pequeno btn-secundario" onclick="atualizarProduto('${produto.id}')">Atualizar</button>
+        <button class="btn-pequeno btn-excluir" onclick="alternarProduto('${produto.id}', ${produto.ativo ? "false" : "true"})">
+          ${produto.ativo ? "Desativar" : "Ativar"}
         </button>
       </div>
-    `;
-  }).join("");
+    </div>
+  `).join("");
 }
 
-async function carregarTudo() {
-  await Promise.all([
-    carregarProdutos(),
-    carregarAlunos(),
-    carregarVendas()
-  ]);
+async function atualizarProduto(id) {
+  const preco = Number(document.getElementById(`preco-${id}`).value);
+  const estoque = Number(document.getElementById(`estoque-${id}`).value);
+
+  try {
+    await TomazinhoAuth.apiFetch("/api/produtos", {
+      method: "PATCH",
+      body: JSON.stringify({ id, preco, estoque })
+    });
+    mostrarMensagem("Produto atualizado.");
+    await carregarProdutos();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
+  }
 }
 
-carregarTudo();
+async function alternarProduto(id, ativo) {
+  try {
+    await TomazinhoAuth.apiFetch("/api/produtos", {
+      method: "PATCH",
+      body: JSON.stringify({ id, ativo })
+    });
+    mostrarMensagem("Status do produto atualizado.");
+    await carregarProdutos();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
+  }
+}
+
+async function carregarUsuarios() {
+  const lista = document.getElementById("listaUsuarios");
+
+  if (perfilAtual?.tipo !== "admin") {
+    lista.innerHTML = '<div class="item-admin">Apenas admin visualiza e libera usuários.</div>';
+    return;
+  }
+
+  usuarios = await TomazinhoAuth.apiFetch("/api/usuarios");
+
+  if (!usuarios.length) {
+    lista.innerHTML = '<div class="item-admin">Nenhum usuário encontrado.</div>';
+    return;
+  }
+
+  lista.innerHTML = usuarios.map((usuario) => `
+    <div class="item-admin">
+      <label>
+        <input type="checkbox" class="usuario-check" value="${usuario.id}">
+        <strong>${usuario.nome || usuario.email}</strong><br>
+        <small>${usuario.email || ""}</small>
+      </label>
+      <div class="acoes-item">
+        <select id="tipo-${usuario.id}">
+          ${["pendente", "student", "seller", "admin"].map((tipo) => `
+            <option value="${tipo}" ${usuario.tipo === tipo ? "selected" : ""}>${tipo}</option>
+          `).join("")}
+        </select>
+        <select id="grupo-${usuario.id}">
+          <option value="">Sem grupo</option>
+          ${grupos.map((grupo) => `
+            <option value="${grupo.id}" ${usuario.grupo_id === grupo.id ? "selected" : ""}>${grupo.nome}</option>
+          `).join("")}
+        </select>
+        <input class="input-mini" id="saldo-${usuario.id}" type="number" min="0" value="${usuario.saldo}">
+        <button class="btn-pequeno btn-secundario" onclick="salvarUsuario('${usuario.id}')">Salvar</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function salvarUsuario(id) {
+  const body = {
+    id,
+    tipo: document.getElementById(`tipo-${id}`).value,
+    grupo_id: document.getElementById(`grupo-${id}`).value || null,
+    saldo: Number(document.getElementById(`saldo-${id}`).value)
+  };
+
+  try {
+    await TomazinhoAuth.apiFetch("/api/usuarios", {
+      method: "PATCH",
+      body: JSON.stringify(body)
+    });
+    mostrarMensagem("Usuário atualizado.");
+    await carregarUsuarios();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
+  }
+}
+
+async function aplicarSaldoSelecionados() {
+  const ids = [...document.querySelectorAll(".usuario-check:checked")].map((item) => item.value);
+  const saldo_modo = document.getElementById("saldoModo").value;
+  const saldo_valor = Number(document.getElementById("saldoValor").value || 0);
+
+  if (!ids.length) {
+    mostrarMensagem("Selecione pelo menos um usuário.", false);
+    return;
+  }
+
+  try {
+    await TomazinhoAuth.apiFetch("/api/usuarios", {
+      method: "PATCH",
+      body: JSON.stringify({ ids, saldo_modo, saldo_valor })
+    });
+    mostrarMensagem("Saldo atualizado para os usuários selecionados.");
+    await carregarUsuarios();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
+  }
+}
+
+async function iniciarAdmin() {
+  try {
+    await TomazinhoAuth.initSupabase();
+    const autorizado = await carregarPerfil();
+    if (!autorizado) return;
+    await carregarGrupos();
+    await carregarProdutos();
+    await carregarUsuarios();
+  } catch (error) {
+    mostrarMensagem(error.message, false);
+  }
+}
+
+iniciarAdmin();
