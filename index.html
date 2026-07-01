@@ -6,107 +6,143 @@
   <title>Feira do Tomazinho</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="hero">
-    <section class="hero-card">
-      <span class="selo">Moeda escolar</span>
-      <h1>Feira do Tomazinho</h1>
-      <p>
-        Entre com sua conta, confira seu saldo e compre os produtos criados pelos grupos.
-      </p>
-
-      <div class="aluno-box">
-        <span>Conta</span>
-        <strong id="usuarioAtual">Carregando...</strong>
-        <div class="botoes-hero compacta">
-          <button class="btn btn-branco" id="btnLogin" onclick="loginGoogle()">Entrar com Google</button>
-          <button class="btn btn-branco" id="btnLogout" onclick="logout()" style="display:none">Sair</button>
-          <a class="btn btn-branco" id="btnAdmin" href="/admin/admin.html" style="display:none">Painel</a>
+  <header>
+    <div class="topo">
+      <div class="logo">
+        <div class="moeda-logo">🪙</div>
+        <div>
+          <h1>Feira do Tomazinho</h1>
+          <p>Aprender, vender, comprar e brincar!</p>
+          <a class="link-painel" href="admin/admin.html">Painel dos grupos e professor</a>
         </div>
       </div>
 
-      <div class="saldo-box">
-        <span>Saldo disponível</span>
-        <strong id="saldoTomazinho">0 Tomazinhos</strong>
+      <div class="saldo" id="boxUsuario">
+        <span id="usuarioNome">Visitante</span>
+        <strong id="saldoTomazinho">Entre para ver o saldo</strong>
+        <button class="mini-btn" id="btnLogin" onclick="loginGoogle()">Entrar com Google</button>
+        <button class="mini-btn mini-btn-sair" id="btnLogout" onclick="logout()" style="display:none">Sair</button>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-card">
+        <h2>O mercadinho mais divertido da escola!</h2>
+        <p>
+          Aqui as turmas do Ensino Médio criam produtos incríveis e as turmas do Fundamental
+          usam a moeda fictícia <strong>Tomazinho</strong> para comprar, aprender sobre dinheiro,
+          escolhas e trabalho em equipe.
+        </p>
+
+        <div class="botoes-hero">
+          <a href="#produtos" class="btn btn-amarelo">🌟 Ver produtos</a>
+          <a href="#como-funciona" class="btn btn-branco">💡 Como funciona</a>
+        </div>
       </div>
 
-      <div class="botoes-hero">
-        <a class="btn btn-amarelo" href="#produtos">Ver produtos</a>
+      <div class="hero-ilustracao" aria-hidden="true">
+        <div class="cena">
+          <div class="toldo"></div>
+          <div class="banca"></div>
+          <div class="personagem vendedor">🧒</div>
+          <div class="personagem comprador">👧</div>
+          <div class="produto-mini">🧸</div>
+          <div class="moeda-mini">🪙</div>
+        </div>
       </div>
-    </section>
-
-    <section class="hero-ilustracao" aria-label="Ilustração da feira">
-      <div class="cena">
-        <div class="toldo"></div>
-        <div class="banca"></div>
-        <div class="personagem vendedor">🙂</div>
-        <div class="personagem comprador">😊</div>
-        <div class="produto-mini">🎁</div>
-        <div class="moeda-mini">T</div>
-      </div>
-    </section>
+    </div>
   </header>
 
   <main>
-    <section class="cards-info">
-      <article class="info">
-        <div class="icone">T</div>
-        <h4>Saldo controlado</h4>
-        <p>O saldo do aluno fica salvo no Supabase e é descontado a cada compra.</p>
-      </article>
-      <article class="info">
-        <div class="icone">🛍️</div>
-        <h4>Produtos dos grupos</h4>
-        <p>Os vendedores cadastram produtos, preços, estoque e imagens.</p>
-      </article>
-      <article class="info">
-        <div class="icone">✓</div>
-        <h4>Compra segura</h4>
-        <p>A compra baixa estoque, desconta saldo e registra histórico no banco.</p>
-      </article>
+    <section class="aviso-login" id="avisoLogin">
+      <strong>🔐 Login escolar</strong>
+      <p>Os alunos do 6º ano entram com Google para ver saldo e comprar. Grupos vendedores e professor usam o painel.</p>
+    </section>
+
+    <section>
+      <div class="secao-titulo">
+        <h3>Por que essa feira é especial?</h3>
+        <p>Uma experiência divertida de aprendizagem</p>
+      </div>
+
+      <div class="cards-info">
+        <article class="info">
+          <div class="icone">🎨</div>
+          <h4>Criatividade</h4>
+          <p>As turmas criam produtos, embalagens, ideias e formas de apresentar suas invenções.</p>
+        </article>
+
+        <article class="info">
+          <div class="icone">🪙</div>
+          <h4>Dinheiro fictício</h4>
+          <p>As compras usam Tomazinhos, ajudando as crianças a entender valor, troco e planejamento.</p>
+        </article>
+
+        <article class="info">
+          <div class="icone">🤝</div>
+          <h4>Aprender juntos</h4>
+          <p>Ensino Médio e Fundamental participam juntos, fortalecendo cooperação e protagonismo.</p>
+        </article>
+      </div>
     </section>
 
     <section id="produtos">
       <div class="secao-titulo">
-        <h3>Produtos disponíveis</h3>
-        <p>Escolha um produto para comprar</p>
+        <h3>Produtos da feira</h3>
+        <p>Escolha seus favoritos e use seus Tomazinhos</p>
       </div>
-      <div class="grade-produtos" id="gradeProdutos"></div>
+
+      <div class="grade-produtos" id="gradeProdutos">
+        <article class="produto"><h4>Carregando produtos...</h4></article>
+      </div>
     </section>
 
     <section class="painel">
-      <article class="quadro">
-        <h4>Como comprar</h4>
+      <article class="quadro" id="como-funciona">
+        <h4>Como funciona?</h4>
         <div class="passos">
-          <div class="passo">
-            <span class="numero">1</span>
-            <p>Entre com Google e aguarde o professor liberar seu usuário como comprador.</p>
-          </div>
-          <div class="passo">
-            <span class="numero">2</span>
-            <p>Escolha um produto disponível e confirme a compra.</p>
-          </div>
-          <div class="passo">
-            <span class="numero">3</span>
-            <p>Seu saldo e o estoque são atualizados automaticamente.</p>
-          </div>
+          <div class="passo"><div class="numero">1</div><div><strong>As turmas criam</strong><p>Os alunos do Ensino Médio desenvolvem os produtos e organizam a feira.</p></div></div>
+          <div class="passo"><div class="numero">2</div><div><strong>Os pequenos recebem Tomazinhos</strong><p>Cada criança recebe saldo fictício liberado pelo professor.</p></div></div>
+          <div class="passo"><div class="numero">3</div><div><strong>Hora das compras</strong><p>Os alunos entram com Google, escolhem produtos e finalizam a compra.</p></div></div>
+          <div class="passo"><div class="numero">4</div><div><strong>Registro automático</strong><p>O sistema desconta saldo, reduz estoque e guarda o histórico.</p></div></div>
         </div>
       </article>
 
       <article class="quadro">
-        <h4>Minhas compras</h4>
-        <div id="listaCompras" class="lista-carrinho"></div>
+        <h4>Meu carrinho</h4>
+        <div class="lista-carrinho" id="listaCarrinho">
+          <div class="item-carrinho">Nenhum produto escolhido ainda ✨</div>
+        </div>
+
+        <div class="total-box">
+          <span>Total da compra:</span>
+          <strong id="totalCarrinho">0 Tomazinhos</strong>
+        </div>
+
+        <div class="acoes-carrinho">
+          <button class="btn btn-secundario" onclick="limparCarrinho()">🧹 Limpar</button>
+          <button class="btn btn-principal" onclick="finalizarCompra()">🛍️ Finalizar compra</button>
+        </div>
+
         <div class="mensagem" id="mensagemCompra"></div>
       </article>
     </section>
-  </main>
 
-  <footer>
-    Feira do Tomazinho - Projeto escolar de empreendedorismo e educação financeira
-  </footer>
+    <section class="quadro historico-box">
+      <h4>Minhas compras</h4>
+      <div id="historicoCompras" class="lista-carrinho">
+        Entre com Google para ver seu histórico.
+      </div>
+    </section>
+
+    <footer>
+      <p>Feira do Tomazinho • Projeto escolar de compra e venda com moeda fictícia</p>
+    </footer>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="lib/supabase-client.js"></script>

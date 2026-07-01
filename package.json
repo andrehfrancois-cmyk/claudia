@@ -1,6 +1,6 @@
 {
-  "name": "feira-do-tomazinho",
-  "version": "1.0.0",
+  "name": "feira-do-tomazinho-supabase",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,9 +8,9 @@
     "start": "vercel dev"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.4"
+    "@supabase/supabase-js": "latest"
   },
   "devDependencies": {
-    "vercel": "^44.2.10"
+    "vercel": "latest"
   }
 }

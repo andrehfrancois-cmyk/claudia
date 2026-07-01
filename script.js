@@ -1,188 +1,210 @@
 let perfilAtual = null;
-let sessionAtual = null;
+let produtosDisponiveis = [];
+let carrinho = [];
 
-function dinheiro(valor) {
-  return `${Number(valor || 0)} Tomazinhos`;
+const dinheiro = (valor) => `${valor} Tomazinho${Number(valor) === 1 ? '' : 's'}`;
+const esc = (txt) => String(txt ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function atualizarTela() {
+  const lista = document.getElementById('listaCarrinho');
+  const total = carrinho.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
+  document.getElementById('totalCarrinho').textContent = dinheiro(total);
+
+  if (carrinho.length === 0) {
+    lista.innerHTML = '<div class="item-carrinho">Nenhum produto escolhido ainda ✨</div>';
+    return;
+  }
+
+  lista.innerHTML = carrinho.map(item => `
+    <div class="item-carrinho">
+      <span>${item.icone || '🛍️'} ${item.nome} <small>x${item.quantidade}</small></span>
+      <strong>${dinheiro(item.preco * item.quantidade)}</strong>
+    </div>
+  `).join('');
 }
 
 function mostrarMensagem(texto, sucesso = true) {
-  const mensagem = document.getElementById("mensagemCompra");
-  mensagem.style.display = "block";
+  const mensagem = document.getElementById('mensagemCompra');
+  mensagem.style.display = 'block';
   mensagem.textContent = texto;
-  mensagem.style.background = sucesso ? "#eefdf3" : "#fff0ef";
-  mensagem.style.color = sucesso ? "#2b7a40" : "#b24040";
-  mensagem.style.borderColor = sucesso ? "#c8f0d2" : "#ffc8c4";
+  mensagem.style.background = sucesso ? '#eefdf3' : '#fff0ef';
+  mensagem.style.color = sucesso ? '#2b7a40' : '#b24040';
+  mensagem.style.borderColor = sucesso ? '#c8f0d2' : '#ffc8c4';
 }
 
-function atualizarCabecalho() {
-  const usuario = document.getElementById("usuarioAtual");
-  const saldo = document.getElementById("saldoTomazinho");
-  const btnLogin = document.getElementById("btnLogin");
-  const btnLogout = document.getElementById("btnLogout");
-  const btnAdmin = document.getElementById("btnAdmin");
 
-  if (!sessionAtual) {
-    usuario.textContent = "Entre para começar";
-    saldo.textContent = "0 Tomazinhos";
-    btnLogin.style.display = "inline-flex";
-    btnLogout.style.display = "none";
-    btnAdmin.style.display = "none";
-    return;
+function renderImagemLoja(p) {
+  if (p.imagem_url) {
+    return `<img class="produto-img" src="${esc(p.imagem_url)}" alt="Imagem do produto ${esc(p.nome)}" loading="lazy">`;
   }
+  return `<div class="produto-icone">${esc(p.icone || '🛍️')}</div>`;
+}
 
-  usuario.textContent = perfilAtual
-    ? `${perfilAtual.nome || sessionAtual.user.email} (${perfilAtual.tipo})`
-    : sessionAtual.user.email;
-  saldo.textContent = dinheiro(perfilAtual?.saldo || 0);
-  btnLogin.style.display = "none";
-  btnLogout.style.display = "inline-flex";
-  btnAdmin.style.display = ["seller", "admin"].includes(perfilAtual?.tipo)
-    ? "inline-flex"
-    : "none";
+async function loginGoogle() {
+  await window.TomazinhoAuth.loginGoogle();
+}
+
+async function logout() {
+  await window.TomazinhoAuth.logout();
 }
 
 async function carregarPerfil() {
-  sessionAtual = await TomazinhoAuth.getSession();
+  const session = await window.TomazinhoAuth.getSession();
+  const btnLogin = document.getElementById('btnLogin');
+  const btnLogout = document.getElementById('btnLogout');
+  const usuarioNome = document.getElementById('usuarioNome');
+  const saldo = document.getElementById('saldoTomazinho');
+  const aviso = document.getElementById('avisoLogin');
 
-  if (!sessionAtual) {
+  if (!session) {
     perfilAtual = null;
-    atualizarCabecalho();
+    btnLogin.style.display = 'inline-flex';
+    btnLogout.style.display = 'none';
+    usuarioNome.textContent = 'Visitante';
+    saldo.textContent = 'Entre para ver o saldo';
+    aviso.innerHTML = '<strong>🔐 Login escolar</strong><p>Entre com Google para consultar saldo, comprar e ver histórico.</p>';
     return;
   }
 
-  try {
-    const dados = await TomazinhoAuth.apiFetch("/api/perfil");
-    perfilAtual = dados.perfil;
-  } catch (error) {
-    perfilAtual = null;
-    mostrarMensagem(error.message, false);
-  }
+  btnLogin.style.display = 'none';
+  btnLogout.style.display = 'inline-flex';
 
-  atualizarCabecalho();
+  try {
+    const dados = await window.TomazinhoAuth.apiFetch('/api/perfil');
+    perfilAtual = dados.perfil;
+    usuarioNome.textContent = perfilAtual?.nome || dados.user.email;
+
+    if (!perfilAtual || perfilAtual.tipo === 'pendente') {
+      saldo.textContent = 'Aguardando liberação';
+      aviso.innerHTML = '<strong>⏳ Acesso pendente</strong><p>Seu login funcionou, mas o professor ainda precisa liberar seu tipo de acesso no painel admin.</p>';
+      return;
+    }
+
+    if (perfilAtual.tipo === 'student') {
+      saldo.textContent = dinheiro(perfilAtual.saldo);
+      aviso.innerHTML = '<strong>✅ Aluno liberado</strong><p>Agora você pode escolher produtos e finalizar suas compras com Tomazinhos.</p>';
+      await carregarHistorico();
+    } else {
+      saldo.textContent = perfilAtual.tipo === 'admin' ? 'Professor/Admin' : 'Grupo vendedor';
+      aviso.innerHTML = '<strong>🧑‍🏫 Acesso administrativo</strong><p>Use o painel para cadastrar produtos, acompanhar vendas e gerenciar usuários.</p>';
+    }
+  } catch (e) {
+    aviso.innerHTML = `<strong>⚠️ Erro</strong><p>${e.message}</p>`;
+  }
 }
 
 async function carregarProdutos() {
-  const grade = document.getElementById("gradeProdutos");
-
+  const grade = document.getElementById('gradeProdutos');
   try {
-    const produtos = await TomazinhoAuth.apiFetch("/api/produtos");
-    const ativos = produtos.filter((produto) => produto.ativo !== false);
-
-    if (!ativos.length) {
-      grade.innerHTML = `
-        <article class="produto">
-          <div class="produto-icone">🛍️</div>
-          <h4>Nenhum produto ainda</h4>
-          <p>Os grupos vendedores ainda vão cadastrar os produtos da feira.</p>
-          <div class="rodape-card">
-            <span class="preco">Em breve</span>
-          </div>
-        </article>
-      `;
+    produtosDisponiveis = await window.TomazinhoAuth.apiFetch('/api/produtos');
+    if (!produtosDisponiveis.length) {
+      grade.innerHTML = '<article class="produto"><h4>Nenhum produto ativo ainda</h4><p>Os grupos vendedores ainda vão cadastrar os produtos.</p></article>';
       return;
     }
 
-    grade.innerHTML = ativos.map((produto) => {
-      const imagem = produto.imagem_url
-        ? `<img class="produto-img" src="${produto.imagem_url}" alt="${produto.nome}">`
-        : `<div class="produto-icone">${produto.icone || "🛍️"}</div>`;
-
-      const semEstoque = Number(produto.estoque || 0) <= 0;
-
-      return `
-        <article class="produto">
-          <span class="tag-turma">${produto.grupos?.nome || produto.turma || "Grupo"}</span>
-          ${imagem}
-          <h4>${produto.nome}</h4>
-          <p>${produto.descricao || "Produto criado pelos alunos."}</p>
-          <div class="rodape-card">
-            <span class="preco">${produto.preco} Tomazinhos</span>
-            <small>Estoque: ${produto.estoque}</small>
-            <button
-              class="btn-comprar"
-              onclick="comprarProduto('${produto.id}')"
-              ${semEstoque ? "disabled" : ""}
-            >
-              ${semEstoque ? "Esgotado" : "Comprar"}
-            </button>
-          </div>
-        </article>
-      `;
-    }).join("");
-  } catch (error) {
-    grade.innerHTML = `
+    grade.innerHTML = produtosDisponiveis.map(p => `
       <article class="produto">
-        <div class="produto-icone">!</div>
-        <h4>Erro ao carregar</h4>
-        <p>${error.message}</p>
+        <span class="tag-turma">${p.grupos?.nome || p.turma || 'Grupo vendedor'}</span>
+        ${renderImagemLoja(p)}
+        <h4>${p.nome}</h4>
+        <p>${p.descricao || 'Produto criado pelos alunos.'}</p>
+        <small class="estoque">Estoque: ${p.estoque}</small>
+        <div class="rodape-card">
+          <span class="preco">${dinheiro(p.preco)}</span>
+          <button class="btn-comprar" onclick="adicionarAoCarrinho('${p.id}')">Comprar</button>
+        </div>
       </article>
-    `;
+    `).join('');
+  } catch (e) {
+    grade.innerHTML = `<article class="produto"><h4>Erro ao carregar produtos</h4><p>${e.message}</p></article>`;
   }
 }
 
-async function comprarProduto(produtoId) {
-  if (!sessionAtual) {
-    mostrarMensagem("Entre com Google antes de comprar.", false);
+function adicionarAoCarrinho(id) {
+  if (!perfilAtual) {
+    mostrarMensagem('Entre com Google antes de comprar.', false);
+    return;
+  }
+  if (perfilAtual.tipo !== 'student') {
+    mostrarMensagem('Este acesso não é de aluno comprador.', false);
     return;
   }
 
-  if (perfilAtual?.tipo !== "student") {
-    mostrarMensagem("Apenas alunos compradores liberados podem finalizar compras.", false);
+  const produto = produtosDisponiveis.find(p => p.id === id);
+  if (!produto) return;
+  const item = carrinho.find(i => i.id === id);
+  const quantidadeAtual = item?.quantidade || 0;
+  if (quantidadeAtual + 1 > produto.estoque) {
+    mostrarMensagem('Não há estoque suficiente para adicionar mais unidades.', false);
+    return;
+  }
+  if (item) item.quantidade += 1;
+  else carrinho.push({ id: produto.id, nome: produto.nome, preco: produto.preco, icone: produto.icone, imagem_url: produto.imagem_url, quantidade: 1 });
+  atualizarTela();
+  mostrarMensagem(`${produto.nome} foi adicionado ao carrinho!`);
+}
+
+function limparCarrinho() {
+  carrinho = [];
+  atualizarTela();
+  mostrarMensagem('Carrinho limpo com sucesso!');
+}
+
+async function finalizarCompra() {
+  if (!perfilAtual || perfilAtual.tipo !== 'student') {
+    mostrarMensagem('Faça login como aluno comprador para finalizar.', false);
     return;
   }
 
-  const confirmar = confirm("Confirmar compra deste produto?");
-  if (!confirmar) return;
+  const total = carrinho.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
+  if (carrinho.length === 0) return mostrarMensagem('Escolha pelo menos um produto antes de finalizar.', false);
+  if (total > perfilAtual.saldo) return mostrarMensagem('Você não tem Tomazinhos suficientes para essa compra.', false);
 
   try {
-    await TomazinhoAuth.apiFetch("/api/comprar", {
-      method: "POST",
-      body: JSON.stringify({ produto_id: produtoId, quantidade: 1 })
-    });
-    mostrarMensagem("Compra concluída com sucesso.");
+    for (const item of carrinho) {
+      await window.TomazinhoAuth.apiFetch('/api/comprar', {
+        method: 'POST',
+        body: JSON.stringify({ produto_id: item.id, quantidade: item.quantidade })
+      });
+    }
+    const qtd = carrinho.reduce((s, i) => s + i.quantidade, 0);
+    carrinho = [];
+    atualizarTela();
+    mostrarMensagem(`Compra concluída! Você comprou ${qtd} item(ns). Parabéns!`);
     await carregarPerfil();
     await carregarProdutos();
-    await carregarCompras();
-  } catch (error) {
-    mostrarMensagem(error.message, false);
+  } catch (e) {
+    mostrarMensagem(e.message, false);
   }
 }
 
-async function carregarCompras() {
-  const lista = document.getElementById("listaCompras");
-
-  if (!sessionAtual) {
-    lista.innerHTML = '<div class="item-carrinho">Entre com Google para ver seu histórico.</div>';
-    return;
-  }
-
+async function carregarHistorico() {
+  const el = document.getElementById('historicoCompras');
   try {
-    const compras = await TomazinhoAuth.apiFetch("/api/minhas-compras");
-
+    const compras = await window.TomazinhoAuth.apiFetch('/api/minhas-compras');
     if (!compras.length) {
-      lista.innerHTML = '<div class="item-carrinho">Nenhuma compra registrada ainda.</div>';
+      el.innerHTML = '<div class="item-carrinho">Nenhuma compra realizada ainda.</div>';
       return;
     }
-
-    lista.innerHTML = compras.map((compra) => `
+    el.innerHTML = compras.map(c => `
       <div class="item-carrinho">
-        <span>${compra.produtos?.nome || "Produto"} x${compra.quantidade}</span>
-        <strong>${compra.total} T</strong>
+        <span>${c.produtos?.icone || '🛍️'} ${c.produtos?.nome || 'Produto'} x${c.quantidade}</span>
+        <strong>${dinheiro(c.total)}</strong>
       </div>
-    `).join("");
-  } catch (error) {
-    lista.innerHTML = `<div class="item-carrinho">${error.message}</div>`;
+    `).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="item-carrinho">${e.message}</div>`;
   }
 }
 
 async function iniciar() {
   try {
-    await TomazinhoAuth.initSupabase();
+    await window.TomazinhoAuth.initSupabase();
     await carregarPerfil();
     await carregarProdutos();
-    await carregarCompras();
-  } catch (error) {
-    mostrarMensagem(error.message, false);
+    atualizarTela();
+  } catch (e) {
+    document.getElementById('avisoLogin').innerHTML = `<strong>⚠️ Configuração pendente</strong><p>${e.message}</p>`;
   }
 }
 
