@@ -390,10 +390,34 @@ async function carregarVendas() {
     <div class="admin-item">
       <strong>${esc(v.produtos?.icone || '🛍️')} ${esc(v.produtos?.nome || 'Produto')}</strong>
       <span>Comprador: ${esc(v.usuarios?.nome || v.usuarios?.email || 'Aluno')}</span>
-      <span class="badge">Qtd: ${v.quantidade} • Total: ${dinheiro(v.total)} • ${esc(v.grupos?.nome || '')}</span>
+      <span class="badge">Qtd: ${v.quantidade} • Total: ${dinheiro(v.total)} • ${esc(v.grupos?.nome || '')} • ${esc(v.status || 'confirmada')}</span>
       <small>${new Date(v.created_at).toLocaleString('pt-BR')}</small>
+      ${v.status === 'confirmada' ? `
+        <div class="row-actions">
+          <button class="mini-btn mini-btn-sair" onclick="cancelarVenda('${v.id}', ${Number(v.total || 0)})">
+            Cancelar venda e devolver saldo
+          </button>
+        </div>
+      ` : ''}
     </div>
   `).join('');
+}
+
+async function cancelarVenda(id, total) {
+  const ok = confirm(`Cancelar esta venda e devolver ${dinheiro(total)} ao aluno?`);
+  if (!ok) return;
+
+  try {
+    const resposta = await window.TomazinhoAuth.apiFetch(`/api/vendas?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+    mensagem('msgProduto', resposta.mensagem || 'Venda cancelada com sucesso!');
+    await carregarVendas();
+    await carregarProdutos();
+    if (perfil.tipo === 'admin') await carregarUsuarios();
+  } catch (e) {
+    mensagem('msgProduto', e.message, false);
+  }
 }
 
 iniciarPainel();
