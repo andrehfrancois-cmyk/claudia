@@ -1,3 +1,5 @@
+teste de retorno 
+
 # Feira do Tomazinho - Vercel + Supabase
 
 Sistema escolar de compra e venda com moeda fictícia Tomazinho.
